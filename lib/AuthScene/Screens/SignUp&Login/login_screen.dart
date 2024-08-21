@@ -1,30 +1,29 @@
 import 'package:curefarm_beta/Extensions/Gaps.dart';
 import 'package:curefarm_beta/Extensions/Sizes.dart';
-import 'package:curefarm_beta/SignUp&Login/email_screen.dart';
-import 'package:curefarm_beta/SignUp&Login/login_screen.dart';
-import 'package:curefarm_beta/SignUp&Login/username_screen.dart';
-import 'package:curefarm_beta/widgets/auth_button.dart';
-import 'package:flutter/cupertino.dart';
+import 'package:curefarm_beta/AuthScene/Screens/SignUp&Login/login_form.dart';
+import 'package:curefarm_beta/AuthScene/Screens/SignUp&Login/email_screen.dart';
+import 'package:curefarm_beta/AuthScene/Screens/SignUp&Login/sign_up_screen.dart';
+import 'package:curefarm_beta/AuthScene/widgets/auth_button.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/widgets.dart';
 import 'package:font_awesome_flutter/font_awesome_flutter.dart';
+import 'package:go_router/go_router.dart';
 
-class SignUpScreen extends StatelessWidget {
-  const SignUpScreen({super.key});
+class LoginScreen extends StatelessWidget {
+  const LoginScreen({super.key});
 
-  void _onLoginTap(BuildContext context) {
-    Navigator.of(context).push(
-      MaterialPageRoute(
-        builder: (context) => const LoginScreen(),
-      ),
-    );
+  static String routeName = "login";
+  static String routeURL = "/login";
+
+  void _onSignUpTap(BuildContext context) {
+    context.goNamed(SignUpScreen.routeName);
   }
 
-  void _onEmailTap(BuildContext context) {
+  void _onEmailLoginTap(BuildContext context) {
     Navigator.of(context).push(
       MaterialPageRoute(
-        builder: (context) => const UsernameScreen(),
-      ), 
+        builder: (context) => const LoginFormScreen(),
+      ),
     );
   }
 
@@ -40,7 +39,7 @@ class SignUpScreen extends StatelessWidget {
               children: [
                 Gaps.v80,
                 const Text(
-                  "큐어팜 회원가입",
+                  "큐어팜 로그인",
                   style: TextStyle(
                     fontSize: Sizes.size24,
                     fontWeight: FontWeight.w700,
@@ -48,7 +47,7 @@ class SignUpScreen extends StatelessWidget {
                 ),
                 Gaps.v20,
                 const Text(
-                  "계정을 생성하여 큐어팜과 함께하세요",
+                  "로그인하여 큐어팜만의 서비스를 경험하세요",
                   style: TextStyle(
                     fontSize: Sizes.size16,
                     color: Colors.black45,
@@ -57,16 +56,16 @@ class SignUpScreen extends StatelessWidget {
                 ),
                 Gaps.v40,
                 GestureDetector(
-                onTap: () => _onEmailTap(context),
+                onTap: () => _onEmailLoginTap(context),
                 child: const AuthButton(
                   icon: FaIcon(FontAwesomeIcons.user),
-                  text: "이메일로 시작하기",
+                  text: "이메일 로그인",
                 ),
-              ),
+                ),
                 Gaps.v16,
                 const AuthButton(
                   icon: FaIcon(FontAwesomeIcons.google),
-                  text: "구글로 시작하기",
+                  text: "구글 로그인",
                 ),
               ],
             ),
@@ -80,16 +79,16 @@ class SignUpScreen extends StatelessWidget {
           mainAxisAlignment: MainAxisAlignment.center,
           children: [
             const Text(
-              '이미 계정이 있으신가요?',
+              "계정이 없으신가요?",
               style: TextStyle(
                 fontSize: Sizes.size16,
               ),
             ),
             Gaps.h5,
             GestureDetector(
-              onTap: () => _onLoginTap(context),
+              onTap: () => _onSignUpTap(context),
               child: Text(
-                '로그인',
+                "회원가입",
                 style: TextStyle(
                   fontSize: Sizes.size16,
                   fontWeight: FontWeight.w600,

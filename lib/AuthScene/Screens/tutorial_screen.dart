@@ -1,8 +1,9 @@
 import 'package:curefarm_beta/Extensions/Gaps.dart';
 import 'package:curefarm_beta/Extensions/Sizes.dart';
-import 'package:curefarm_beta/Screens/main_navigation_screen.dart';
+import 'package:curefarm_beta/MainScene/Screens/main_navigation_screen.dart';
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
+import 'package:go_router/go_router.dart';
 
 enum Direction { right, left }
 
@@ -39,12 +40,7 @@ class _TutorialScreenState extends State<TutorialScreen> {
   }
 
   void _onEnterAppTap() {
-    Navigator.of(context).pushAndRemoveUntil(
-      MaterialPageRoute(
-        builder: (context) => const MainNavigationScreen(),
-      ),
-      (route) => false,
-    );
+    context.go("/home");
   }
 
   @override

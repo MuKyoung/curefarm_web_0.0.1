@@ -1,16 +1,39 @@
 import 'dart:math';
 import 'package:curefarm_beta/Extensions/Sizes.dart';
+import 'package:curefarm_beta/AuthScene/repos/authentication_repo.dart';
+import 'package:curefarm_beta/MainScene/view_models/main_view_model.dart';
+import 'package:curefarm_beta/SettingScene/Screens/settings_screen.dart';
 import 'package:curefarm_beta/widgets/nav_tab.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:font_awesome_flutter/font_awesome_flutter.dart';
+import 'package:go_router/go_router.dart';
 
-class MainNavigationScreen extends StatefulWidget {
-  const MainNavigationScreen({super.key});
+class MainNavigationScreen extends ConsumerStatefulWidget {
   @override
-  State<MainNavigationScreen> createState() => _MainNavigationScreenState();
+  ConsumerState<MainNavigationScreen> createState() => _MainNavigationScreenState();
+
+  static const String routeName = "mainNavigation";
+
+  final String tab;
+
+  const MainNavigationScreen({
+    super.key,
+    required this.tab,
+  });
 }
-class _MainNavigationScreenState extends State<MainNavigationScreen> {
-  int _selectedIndex = 0;
+
+class _MainNavigationScreenState extends ConsumerState<MainNavigationScreen> {
+  final List<String> _tabs = [
+    "home",
+    "discover",
+    "xxxx",
+    "inbox",
+    "profile",
+  ];
+
+  late int _selectedIndex = _tabs.indexOf(widget.tab);
+
   final screens = [
     const Center(
       child: Text(
@@ -25,15 +48,32 @@ class _MainNavigationScreenState extends State<MainNavigationScreen> {
       ),
     ),
   ];
+
   void _onTap(int index) {
+    context.go("/${_tabs[index]}");
     setState(() {
       _selectedIndex = index;
     });
   }
 
+  void _goToSettingsScreen(){
+Navigator.of(context).push(
+          MaterialPageRoute(
+            builder: (context) => const SettingsScreen(),
+          ),
+        );
+  }
+
   @override
   Widget build(BuildContext context) {
-    return Scaffold(
+    final loginState = ref.watch(mainViewModelProvider);
+    
+    return
+    loginState.when(data: (isLoggedIn){
+      return Scaffold(
+      appBar: AppBar(actions: [IconButton(
+        onPressed: _goToSettingsScreen,
+        icon: const FaIcon(FontAwesomeIcons.gear),),],),
       bottomNavigationBar: BottomAppBar(
         elevation: 20.0,
         color: Colors.white,
@@ -52,12 +92,13 @@ class _MainNavigationScreenState extends State<MainNavigationScreen> {
               icon: FontAwesomeIcons.magnifyingGlass,
               onTap: () => _onTap(1),
             ),
+            isLoggedIn ? 
             NavTab(
               text: "채팅",
               isSelected: _selectedIndex == 3,
               icon: FontAwesomeIcons.message,
               onTap: () => _onTap(3),
-            ),
+            ) : const SizedBox.shrink(),
             NavTab(
               text: "프로필",
               isSelected: _selectedIndex == 4,
@@ -68,5 +109,8 @@ class _MainNavigationScreenState extends State<MainNavigationScreen> {
         ),
       ),
     );
+    },
+    loading: () => const CircularProgressIndicator(),
+    error: (error, stack) => Text('Error: $error'),);
   }
 }

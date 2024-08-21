@@ -1,17 +1,20 @@
+import 'package:curefarm_beta/AuthScene/view_models/login_view_model.dart';
 import 'package:curefarm_beta/Extensions/Gaps.dart';
 import 'package:curefarm_beta/Extensions/Sizes.dart';
-import 'package:curefarm_beta/Screens/main_navigation_screen.dart';
-import 'package:curefarm_beta/Screens/tutorial_screen.dart';
-import 'package:curefarm_beta/widgets/form_button.dart';
+import 'package:curefarm_beta/MainScene/Screens/main_navigation_screen.dart';
+import 'package:curefarm_beta/AuthScene/Screens/tutorial_screen.dart';
+import 'package:curefarm_beta/AuthScene/widgets/form_button.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:go_router/go_router.dart';
 
-class LoginFormScreen extends StatefulWidget {
+class LoginFormScreen extends ConsumerStatefulWidget {
   const LoginFormScreen({super.key});
   @override
-  State<LoginFormScreen> createState() => _LoginFormScreenState();
+  ConsumerState<LoginFormScreen> createState() => _LoginFormScreenState();
 }
 
-class _LoginFormScreenState extends State<LoginFormScreen> {
+class _LoginFormScreenState extends ConsumerState<LoginFormScreen> {
   
   final GlobalKey<FormState> _formKey = GlobalKey<FormState>();
 
@@ -21,12 +24,9 @@ class _LoginFormScreenState extends State<LoginFormScreen> {
     if (_formKey.currentState != null) {
       if (_formKey.currentState!.validate()) {
         _formKey.currentState!.save();
-        Navigator.of(context).pushAndRemoveUntil(
-          MaterialPageRoute(
-            builder: (context) => const TutorialScreen(),
-          ),
-          (route) => true,
-        );
+
+        ref.read(loginProvider.notifier).login
+        (formData["email"]!, formData["password"]!, context);
       }
     }
   }
@@ -102,7 +102,7 @@ class _LoginFormScreenState extends State<LoginFormScreen> {
               Gaps.v28,
               GestureDetector(
                 onTap: _onSubmitTap,
-                child: const FormButton(disabled: false),
+                child: FormButton(disabled: ref.watch(loginProvider).isLoading,),
               )
             ],
           ),

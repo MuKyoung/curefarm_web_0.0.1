@@ -1,7 +1,7 @@
 import 'package:curefarm_beta/Extensions/Gaps.dart';
 import 'package:curefarm_beta/Extensions/Sizes.dart';
-import 'package:curefarm_beta/SignUp&Login/email_screen.dart';
-import 'package:curefarm_beta/widgets/form_button.dart';
+import 'package:curefarm_beta/AuthScene/Screens/SignUp&Login/email_screen.dart';
+import 'package:curefarm_beta/AuthScene/widgets/form_button.dart';
 import 'package:flutter/material.dart';
 
 class UsernameScreen extends StatefulWidget {

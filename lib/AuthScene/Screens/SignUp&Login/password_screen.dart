@@ -1,18 +1,21 @@
 import 'package:curefarm_beta/Extensions/Gaps.dart';
 import 'package:curefarm_beta/Extensions/Sizes.dart';
-import 'package:curefarm_beta/SignUp&Login/login_form.dart';
-import 'package:curefarm_beta/widgets/form_button.dart';
+import 'package:curefarm_beta/AuthScene/Screens/tutorial_screen.dart';
+import 'package:curefarm_beta/AuthScene/Screens/SignUp&Login/login_form.dart';
+import 'package:curefarm_beta/AuthScene/view_models/signup_view_model.dart';
+import 'package:curefarm_beta/AuthScene/widgets/form_button.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:font_awesome_flutter/font_awesome_flutter.dart';
 
-class PasswordScreen extends StatefulWidget {
+class PasswordScreen extends ConsumerStatefulWidget {
   const PasswordScreen({super.key});
 
   @override
-  State<PasswordScreen> createState() => _PasswordScreenState();
+  ConsumerState<PasswordScreen> createState() => _PasswordScreenState();
 }
 
-class _PasswordScreenState extends State<PasswordScreen> {
+class _PasswordScreenState extends ConsumerState<PasswordScreen> {
   final TextEditingController _passwordController = TextEditingController();
 
   String _password = "";
@@ -43,12 +46,18 @@ class _PasswordScreenState extends State<PasswordScreen> {
     FocusScope.of(context).unfocus();
   }
 
-  void _onSubmit() {
+  void _onSubmit() async {
     if (!_isPasswordValid()) return;
+    final state = ref.read(signUpForm.notifier).state;
+    ref.read(signUpForm.notifier).state =
+    {...state, "password":_password,};
+
+    await ref.read(signUpProvider.notifier).signUp();
+
     Navigator.push(
       context,
       MaterialPageRoute(
-        builder: (context) => const LoginFormScreen(),
+        builder: (context) => const TutorialScreen(),
       ),
     );
   }
@@ -157,7 +166,7 @@ class _PasswordScreenState extends State<PasswordScreen> {
               GestureDetector(
                 onTap: _onSubmit,
                 child: FormButton(
-                  disabled: !_isPasswordValid(),
+                  disabled: !_isPasswordValid() || ref.watch(signUpProvider).isLoading,
                 ),
               ),
             ],

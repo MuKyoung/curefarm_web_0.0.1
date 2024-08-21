@@ -1,19 +1,30 @@
 import 'package:curefarm_beta/Extensions/Sizes.dart';
-import 'package:curefarm_beta/SignUp&Login/email_screen.dart';
-import 'package:curefarm_beta/SignUp&Login/sign_up_screen.dart';
+import 'package:curefarm_beta/Extensions/router.dart';
+import 'package:curefarm_beta/AuthScene/Screens/SignUp&Login/email_screen.dart';
+import 'package:curefarm_beta/AuthScene/Screens/SignUp&Login/sign_up_screen.dart';
+import 'package:curefarm_beta/firebase_options.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:firebase_core/firebase_core.dart';
+import 'package:flutter/services.dart';
+void main() async {
 
-void main() {
-  runApp(const CureFarm());
+  WidgetsFlutterBinding.ensureInitialized();
+
+  await Firebase.initializeApp(
+    options: DefaultFirebaseOptions.currentPlatform,
+  );
+
+  runApp(const ProviderScope(child: CureFarm(),),);
 }
 
-class CureFarm extends StatelessWidget {
+class CureFarm extends ConsumerWidget {
   const CureFarm({super.key});
 
-  // This widget is the root of your application.
   @override
-  Widget build(BuildContext context) {
-    return MaterialApp(
+  Widget build(BuildContext context, WidgetRef ref) {
+    return MaterialApp.router(
+      routerConfig: ref.watch(routerProvider),
       title: '큐어팜 0.0.1',
       theme: ThemeData(
         scaffoldBackgroundColor: Colors.white,
@@ -29,7 +40,7 @@ class CureFarm extends StatelessWidget {
           ),
         ),
       ),
-      home: const SignUpScreen(),
+    
     );
   }
 }
