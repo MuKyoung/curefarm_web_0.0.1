@@ -52,7 +52,7 @@ class _PasswordScreenState extends ConsumerState<PasswordScreen> {
     ref.read(signUpForm.notifier).state =
     {...state, "password":_password,};
 
-    await ref.read(signUpProvider.notifier).signUp();
+    await ref.read(signUpProvider.notifier).signUp(context);
 
     Navigator.push(
       context,

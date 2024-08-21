@@ -47,6 +47,19 @@ class _MainNavigationScreenState extends ConsumerState<MainNavigationScreen> {
         style: TextStyle(fontSize: 49),
       ),
     ),
+    Container(),
+    const Center(
+      child: Text(
+        'Chats',
+        style: TextStyle(fontSize: 49),
+      ),
+    ),
+    const Center(
+      child: Text(
+        'Profile',
+        style: TextStyle(fontSize: 49),
+      ),
+    ),
   ];
 
   void _onTap(int index) {
@@ -71,11 +84,32 @@ Navigator.of(context).push(
     return
     loginState.when(data: (isLoggedIn){
       return Scaffold(
-      appBar: AppBar(actions: [IconButton(
+      appBar: AppBar(
+        elevation: 10,
+        actions: [IconButton(
         onPressed: _goToSettingsScreen,
         icon: const FaIcon(FontAwesomeIcons.gear),),],),
+      body: Stack(
+        children: [
+          Offstage(
+            offstage: _selectedIndex != 0,
+            child : screens.elementAt(_selectedIndex),
+          ),
+          Offstage(
+            offstage: _selectedIndex != 1,
+            child : screens.elementAt(_selectedIndex),
+          ),
+          Offstage(
+            offstage: _selectedIndex != 3,
+            child : screens.elementAt(_selectedIndex),
+          ),
+          Offstage(
+            offstage: _selectedIndex != 4,
+            child : screens.elementAt(_selectedIndex),
+          ),
+        ],),
       bottomNavigationBar: BottomAppBar(
-        elevation: 20.0,
+        elevation: 10,
         color: Colors.white,
         child: Row(
           mainAxisAlignment: MainAxisAlignment.spaceBetween,
