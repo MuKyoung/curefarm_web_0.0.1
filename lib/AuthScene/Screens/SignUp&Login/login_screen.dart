@@ -56,11 +56,11 @@ class LoginScreen extends StatelessWidget {
                 ),
                 Gaps.v40,
                 GestureDetector(
-                onTap: () => _onEmailLoginTap(context),
-                child: const AuthButton(
-                  icon: FaIcon(FontAwesomeIcons.user),
-                  text: "이메일 로그인",
-                ),
+                  onTap: () => _onEmailLoginTap(context),
+                  child: const AuthButton(
+                    icon: FaIcon(FontAwesomeIcons.user),
+                    text: "이메일 로그인",
+                  ),
                 ),
                 Gaps.v16,
                 const AuthButton(

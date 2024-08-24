@@ -23,13 +23,17 @@ class LoginViewModel extends AsyncNotifier<void> {
   ) async {
     state = const AsyncValue.loading();
     state = await AsyncValue.guard(
-      () async => await _repository.signIn(email, password),
+      () async => await _repository.emailSignIn(email, password),
     );
     if (state.hasError) {
       final snack = SnackBar(
-        action: SnackBarAction(label: "확인",
-        onPressed: () {},),
-        content: Text((state.error as FirebaseException).message ?? "잘못된 시도입니다."),);
+        action: SnackBarAction(
+          label: "확인",
+          onPressed: () {},
+        ),
+        content:
+            Text((state.error as FirebaseException).message ?? "잘못된 시도입니다."),
+      );
       ScaffoldMessenger.of(context).showSnackBar(snack);
     } else {
       context.go("/home");

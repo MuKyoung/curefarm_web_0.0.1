@@ -39,7 +39,9 @@ class _PasswordScreenState extends ConsumerState<PasswordScreen> {
   }
 
   bool _isPasswordValid() {
-    return _password.isNotEmpty && _password.length >= 8 && _password.length <= 20;
+    return _password.isNotEmpty &&
+        _password.length >= 8 &&
+        _password.length <= 20;
   }
 
   void _onScaffoldTap() {
@@ -49,8 +51,10 @@ class _PasswordScreenState extends ConsumerState<PasswordScreen> {
   void _onSubmit() async {
     if (!_isPasswordValid()) return;
     final state = ref.read(signUpForm.notifier).state;
-    ref.read(signUpForm.notifier).state =
-    {...state, "password":_password,};
+    ref.read(signUpForm.notifier).state = {
+      ...state,
+      "password": _password,
+    };
 
     await ref.read(signUpProvider.notifier).signUp(context);
 
@@ -166,7 +170,8 @@ class _PasswordScreenState extends ConsumerState<PasswordScreen> {
               GestureDetector(
                 onTap: _onSubmit,
                 child: FormButton(
-                  disabled: !_isPasswordValid() || ref.watch(signUpProvider).isLoading,
+                  disabled: !_isPasswordValid() ||
+                      ref.watch(signUpProvider).isLoading,
                 ),
               ),
             ],

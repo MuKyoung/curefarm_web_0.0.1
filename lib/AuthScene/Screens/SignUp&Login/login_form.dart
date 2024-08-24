@@ -15,7 +15,6 @@ class LoginFormScreen extends ConsumerStatefulWidget {
 }
 
 class _LoginFormScreenState extends ConsumerState<LoginFormScreen> {
-  
   final GlobalKey<FormState> _formKey = GlobalKey<FormState>();
 
   Map<String, String> formData = {};
@@ -25,8 +24,9 @@ class _LoginFormScreenState extends ConsumerState<LoginFormScreen> {
       if (_formKey.currentState!.validate()) {
         _formKey.currentState!.save();
 
-        ref.read(loginProvider.notifier).login
-        (formData["email"]!, formData["password"]!, context);
+        ref
+            .read(loginProvider.notifier)
+            .login(formData["email"]!, formData["password"]!, context);
       }
     }
   }
@@ -102,7 +102,9 @@ class _LoginFormScreenState extends ConsumerState<LoginFormScreen> {
               Gaps.v28,
               GestureDetector(
                 onTap: _onSubmitTap,
-                child: FormButton(disabled: ref.watch(loginProvider).isLoading,),
+                child: FormButton(
+                  disabled: ref.watch(loginProvider).isLoading,
+                ),
               )
             ],
           ),
