@@ -1,6 +1,7 @@
 import 'package:curefarm_beta/Extensions/Gaps.dart';
 import 'package:curefarm_beta/Extensions/Sizes.dart';
 import 'package:curefarm_beta/users/view_models/users_view_model.dart';
+import 'package:curefarm_beta/widgets/avatar.dart';
 import 'package:curefarm_beta/widgets/persistent_tab_bar.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
@@ -20,7 +21,7 @@ class _UserProfileScreenState extends ConsumerState<UserProfileScreen> {
             child: Text(error.toString()),
           ),
           loading: () => const Center(
-            child: CircularProgressIndicator.adaptive(),
+            child: CircularProgressIndicator(),
           ),
           data: (data) => SafeArea(
             child: DefaultTabController(
@@ -28,26 +29,31 @@ class _UserProfileScreenState extends ConsumerState<UserProfileScreen> {
               child: NestedScrollView(
                   headerSliverBuilder: (context, innerBoxIsScrolled) {
                 return [
-                  SliverAppBar(
-                    //title: Text(data.name),
-                    actions: [
-                      IconButton(
-                        onPressed: () {},
-                        icon: const FaIcon(
-                          FontAwesomeIcons.gear,
-                          size: Sizes.size20,
-                        ),
-                      )
-                    ],
-                  ),
+                  // SliverAppBar(
+                  //   //title: Text(data.name),
+                  //   actions: [
+                  //     IconButton(
+                  //       onPressed: () => {
+                  //         Navigator.of(context).push(
+                  //           MaterialPageRoute(
+                  //             builder: (context) => const SettingsScreen(),
+                  //           ),
+                  //         ),
+                  //       },
+                  //       icon: const FaIcon(
+                  //         FontAwesomeIcons.gear,
+                  //         size: Sizes.size20,
+                  //       ),
+                  //     )
+                  //   ],
+                  // ),
                   SliverToBoxAdapter(
                     child: Column(
                       children: [
-                        CircleAvatar(
-                          radius: 50,
-                          foregroundImage: const NetworkImage(
-                              "https://avatars.githubusercontent.com/u/3612017"),
-                          child: Text(data.name),
+                        Avatar(
+                          uid: data.uid,
+                          name: data.name,
+                          hasAvatar: data.hasAvatar,
                         ),
                         Gaps.v20,
                         Row(
@@ -212,34 +218,36 @@ class _UserProfileScreenState extends ConsumerState<UserProfileScreen> {
 
                   return Padding(
                     padding: padding,
-                    child: TabBarView(
+                    child: const TabBarView(
                       children: [
-                        GridView.builder(
-                          itemCount: 20,
-                          padding: const EdgeInsets.symmetric(
-                              horizontal: Sizes.size10),
-                          gridDelegate:
-                              const SliverGridDelegateWithFixedCrossAxisCount(
-                            crossAxisCount: 3,
-                            crossAxisSpacing: Sizes.size4,
-                            mainAxisSpacing: Sizes.size4,
-                            childAspectRatio: 9 / 14,
-                          ),
-                          itemBuilder: (context, index) => Column(
-                            children: [
-                              AspectRatio(
-                                aspectRatio: 9 / 14,
-                                child: FadeInImage.assetNetwork(
-                                  fit: BoxFit.cover,
-                                  placeholder: "assets/images/placeholder.jpg",
-                                  image:
-                                      "https://images.unsplash.com/photo-1673844969019-c99b0c933e90?ixlib=rb-4.0.3&ixid=MnwxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8&auto=format&fit=crop&w=1480&q=80",
-                                ),
-                              ),
-                            ],
-                          ),
+                        // GridView.builder(
+                        //   itemCount: 20,
+                        //   padding: const EdgeInsets.symmetric(
+                        //       horizontal: Sizes.size10),
+                        //   gridDelegate:
+                        //       const SliverGridDelegateWithFixedCrossAxisCount(
+                        //     crossAxisCount: 3,
+                        //     crossAxisSpacing: Sizes.size4,
+                        //     mainAxisSpacing: Sizes.size4,
+                        //     childAspectRatio: 9 / 14,
+                        //   ),
+                        //   itemBuilder: (context, index) => Column(
+                        //     children: [
+                        //       AspectRatio(
+                        //         aspectRatio: 9 / 14,
+                        //         child: FadeInImage.assetNetwork(
+                        //           fit: BoxFit.cover,
+                        //           placeholder: "assets/images/placeholder.jpg",
+                        //           image: "",
+                        //         ),
+                        //       ),
+                        //     ],
+                        //   ),
+                        // ),
+                        Center(
+                          child: Text('Page One'),
                         ),
-                        const Center(
+                        Center(
                           child: Text('Page two'),
                         ),
                       ],

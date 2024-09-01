@@ -1,12 +1,9 @@
 import 'package:curefarm_beta/AuthScene/view_models/login_view_model.dart';
 import 'package:curefarm_beta/Extensions/Gaps.dart';
 import 'package:curefarm_beta/Extensions/Sizes.dart';
-import 'package:curefarm_beta/MainScene/Screens/main_navigation_screen.dart';
-import 'package:curefarm_beta/AuthScene/Screens/tutorial_screen.dart';
 import 'package:curefarm_beta/AuthScene/widgets/form_button.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
-import 'package:go_router/go_router.dart';
 
 class LoginFormScreen extends ConsumerStatefulWidget {
   const LoginFormScreen({super.key});

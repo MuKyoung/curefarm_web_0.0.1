@@ -1,17 +1,19 @@
+import 'package:curefarm_beta/AuthScene/view_models/signup_view_model.dart';
 import 'package:curefarm_beta/Extensions/Gaps.dart';
 import 'package:curefarm_beta/Extensions/Sizes.dart';
 import 'package:curefarm_beta/AuthScene/Screens/SignUp&Login/email_screen.dart';
 import 'package:curefarm_beta/AuthScene/widgets/form_button.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
 
-class UsernameScreen extends StatefulWidget {
+class UsernameScreen extends ConsumerStatefulWidget {
   const UsernameScreen({super.key});
 
   @override
-  State<UsernameScreen> createState() => _UsernameScreenState();
+  ConsumerState<UsernameScreen> createState() => _UsernameScreenState();
 }
 
-class _UsernameScreenState extends State<UsernameScreen> {
+class _UsernameScreenState extends ConsumerState<UsernameScreen> {
   final TextEditingController _usernameController = TextEditingController();
 
   String _username = "";
@@ -27,7 +29,7 @@ class _UsernameScreenState extends State<UsernameScreen> {
     });
   }
 
- @override
+  @override
   void dispose() {
     _usernameController.dispose();
     super.dispose();
@@ -35,6 +37,7 @@ class _UsernameScreenState extends State<UsernameScreen> {
 
   void _onNextTap() {
     if (_username.isEmpty) return;
+    ref.read(signUpForm.notifier).state = {"username": _username};
     Navigator.of(context).push(
       MaterialPageRoute(
         builder: (context) => const EmailScreen(),
@@ -95,8 +98,8 @@ class _UsernameScreenState extends State<UsernameScreen> {
             GestureDetector(
               onTap: _onNextTap,
               child: FormButton(disabled: _username.isEmpty),
-        ),
-        ],
+            ),
+          ],
         ),
       ),
     );

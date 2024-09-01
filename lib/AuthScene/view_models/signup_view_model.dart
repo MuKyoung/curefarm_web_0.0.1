@@ -1,7 +1,9 @@
 import 'dart:async';
 
+import 'package:curefarm_beta/AuthScene/Screens/tutorial_screen.dart';
 import 'package:curefarm_beta/AuthScene/repos/authentication_repo.dart';
 import 'package:curefarm_beta/users/view_models/users_view_model.dart';
+import 'package:firebase/firebase.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/widgets.dart';
@@ -26,6 +28,13 @@ class SignupViewModel extends AsyncNotifier<void> {
         form["password"],
       );
 
+      await userCredential.user!.updateDisplayName(
+        form["username"],
+      );
+
+      await userCredential.user!.reload();
+      var currentUser = FirebaseAuth.instance.currentUser;
+      print("currentUser: ${currentUser?.displayName}");
       await users.createProfile(userCredential);
     });
 
@@ -40,7 +49,7 @@ class SignupViewModel extends AsyncNotifier<void> {
       );
       ScaffoldMessenger.of(context).showSnackBar(snack);
     } else {
-      context.go("/home");
+      context.go(TutorialScreen.routeURL);
     }
   }
 }

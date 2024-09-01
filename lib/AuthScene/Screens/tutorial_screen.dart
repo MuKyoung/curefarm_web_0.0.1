@@ -8,11 +8,16 @@ import 'package:go_router/go_router.dart';
 enum Direction { right, left }
 
 enum Page { first, second }
+
 class TutorialScreen extends StatefulWidget {
+  static const routeName = "tutorial";
+  static const routeURL = "/tutorial";
+
   const TutorialScreen({super.key});
   @override
   State<TutorialScreen> createState() => _TutorialScreenState();
 }
+
 class _TutorialScreenState extends State<TutorialScreen> {
   Direction _direction = Direction.right;
   Page _showingPage = Page.first;
@@ -27,6 +32,7 @@ class _TutorialScreenState extends State<TutorialScreen> {
       });
     }
   }
+
   void _onPanEnd(DragEndDetails detail) {
     if (_direction == Direction.left) {
       setState(() {
@@ -40,7 +46,7 @@ class _TutorialScreenState extends State<TutorialScreen> {
   }
 
   void _onEnterAppTap() {
-    context.go("/home");
+    context.go('/home');
   }
 
   @override

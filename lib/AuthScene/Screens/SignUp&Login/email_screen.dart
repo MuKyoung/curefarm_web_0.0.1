@@ -51,7 +51,8 @@ class _EmailScreenState extends ConsumerState<EmailScreen> {
 
   void _onSubmit() {
     if (_email.isEmpty || _isEmailValid() != null) return;
-    ref.read(signUpForm.notifier).state = {"email" : _email};
+    final state = ref.read(signUpForm.notifier).state;
+    ref.read(signUpForm.notifier).state = {...state, "email": _email};
     Navigator.push(
       context,
       MaterialPageRoute(
@@ -59,7 +60,6 @@ class _EmailScreenState extends ConsumerState<EmailScreen> {
       ),
     );
   }
-
 
   @override
   Widget build(BuildContext context) {
@@ -71,7 +71,7 @@ class _EmailScreenState extends ConsumerState<EmailScreen> {
             "회원가입",
           ),
         ),
-       body: Padding(
+        body: Padding(
           padding: const EdgeInsets.symmetric(
             horizontal: Sizes.size36,
           ),
@@ -86,7 +86,7 @@ class _EmailScreenState extends ConsumerState<EmailScreen> {
                   fontWeight: FontWeight.w700,
                 ),
               ),
-           Gaps.v16,
+              Gaps.v16,
               TextField(
                 controller: _emailController,
                 keyboardType: TextInputType.emailAddress,
@@ -100,14 +100,13 @@ class _EmailScreenState extends ConsumerState<EmailScreen> {
                       color: Colors.grey.shade400,
                     ),
                   ),
-                 focusedBorder: UnderlineInputBorder(
+                  focusedBorder: UnderlineInputBorder(
                     borderSide: BorderSide(
                       color: Colors.grey.shade400,
                     ),
-              ),
-            ),
-
-           cursorColor: Theme.of(context).primaryColor,
+                  ),
+                ),
+                cursorColor: Theme.of(context).primaryColor,
               ),
               Gaps.v28,
               GestureDetector(
@@ -116,9 +115,9 @@ class _EmailScreenState extends ConsumerState<EmailScreen> {
                   disabled: _email.isEmpty || _isEmailValid() != null,
                 ),
               ),
-          ],
+            ],
+          ),
         ),
-      ),
       ),
     );
   }

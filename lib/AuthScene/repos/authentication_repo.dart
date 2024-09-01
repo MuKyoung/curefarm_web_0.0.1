@@ -1,6 +1,3 @@
-import 'package:curefarm_beta/AuthScene/view_models/signup_view_model.dart';
-import 'package:firebase_core/firebase_core.dart';
-import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 

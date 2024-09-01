@@ -1,9 +1,12 @@
 import 'dart:io';
-
+import 'dart:html' as html;
+import 'package:image_picker/image_picker.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:curefarm_beta/users/models/user_profile_model.dart';
-import 'package:firebase_auth/firebase_auth.dart';
+import 'package:firebase_core/firebase_core.dart';
 import 'package:firebase_storage/firebase_storage.dart';
+import 'package:flutter/foundation.dart';
+import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 class UserRepository {
@@ -18,9 +21,31 @@ class UserRepository {
     return doc.data();
   }
 
-  Future<void> uploadAvatar(File file, String fileName) async {
-    final fileRef = _storage.ref().child("avatars/$fileName");
-    await fileRef.putFile(file);
+  Future<void> uploadAvatar(XFile file, String fileName) async {
+    final storageRef =
+        FirebaseStorage.instance.ref().child("avatars/$fileName");
+    try {
+      if (kIsWeb) {
+        final uploadTask = storageRef.putData(
+          await file.readAsBytes(),
+        );
+
+        await uploadTask.whenComplete(() async {
+          final downloadUrl = await storageRef.getDownloadURL();
+          print('Uploaded to Firebase Storage: $downloadUrl');
+        });
+      } else {
+        await storageRef.putFile(File(file.path));
+      }
+    } catch (error) {
+      print(error);
+    }
+
+    print(kIsWeb);
+  }
+
+  Future<void> updateUser(String uid, Map<String, dynamic> data) async {
+    await _db.collection("users").doc(uid).update(data);
   }
 }
 

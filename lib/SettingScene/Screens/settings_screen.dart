@@ -1,5 +1,7 @@
 import 'package:curefarm_beta/AuthScene/Screens/SignUp&Login/login_screen.dart';
 import 'package:curefarm_beta/AuthScene/repos/authentication_repo.dart';
+import 'package:curefarm_beta/MainScene/Screens/main_navigation_screen.dart';
+import 'package:curefarm_beta/MainScene/view_models/main_view_model.dart';
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
@@ -14,80 +16,110 @@ class SettingsScreen extends ConsumerWidget {
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
-    return Scaffold(
-      appBar: AppBar(
-        title: const Text('Settings'),
-      ),
-      body: ListView(
-        children: [
-          SwitchListTile.adaptive(
-            value: false,
-            onChanged: (value) {},
-            title: const Text("Enable notifications"),
-            subtitle: const Text("They will be cute."),
+    final viewModelState = ref.watch(mainViewModelProvider);
+
+    return viewModelState.when(
+      data: (state) {
+        return Scaffold(
+          appBar: AppBar(
+            title: const Text('Settings'),
           ),
-          CheckboxListTile(
-            activeColor: Colors.black,
-            value: false,
-            onChanged: (value) {},
-            title: const Text("Marketing emails"),
-            subtitle: const Text("We won't spam you."),
-          ),
-          ListTile(
-            title: const Text("Log out"),
-            textColor: Colors.red,
-            onTap: () {
-              showCupertinoDialog(
-                context: context,
-                builder: (context) => AlertDialog(
-                  title: const Text("Are you sure?"),
-                  content: const Text("Plx dont go"),
-                  actions: [
-                    TextButton(
-                      onPressed: () => Navigator.of(context).pop(),
-                      child: const Text("No", style: TextStyle(color: Colors.red),),
-                    ),
-                    TextButton(
-                      onPressed: () {
-                        ref.read(authRepo).logOut();
-                        Navigator.of(context).pop();
+          body: ListView(
+            children: [
+              SwitchListTile.adaptive(
+                value: false,
+                onChanged: (value) {},
+                title: const Text("Enable notifications"),
+                subtitle: const Text("They will be cute."),
+              ),
+              CheckboxListTile(
+                activeColor: Colors.black,
+                value: false,
+                onChanged: (value) {},
+                title: const Text("Marketing emails"),
+                subtitle: const Text("We won't spam you."),
+              ),
+              state.isLoggedIn
+                  ? ListTile(
+                      title: const Text("Log out"),
+                      textColor: Colors.red,
+                      onTap: () {
+                        showCupertinoDialog(
+                          context: context,
+                          builder: (context) => AlertDialog(
+                            title: const Text("Are you sure?"),
+                            content: const Text("Plx dont go"),
+                            actions: [
+                              TextButton(
+                                onPressed: () => Navigator.of(context).pop(),
+                                child: const Text(
+                                  "No",
+                                  style: TextStyle(color: Colors.red),
+                                ),
+                              ),
+                              TextButton(
+                                onPressed: () {
+                                  ref.read(authRepo).logOut();
+                                  Navigator.of(context).pop();
+                                  Navigator.of(context).pop();
+                                  ref
+                                      .read(mainViewModelProvider.notifier)
+                                      .updateSelectedIndex(1);
+                                  context.go("/home");
+                                },
+                                child: const Text(
+                                  "Yes",
+                                  style: TextStyle(color: Colors.blue),
+                                ),
+                              ),
+                            ],
+                          ),
+                        );
                       },
-                      child: const Text("Yes", style: TextStyle(color: Colors.blue),),
-                    ),
-                  ],
-                ),
-              );
-            },
+                    )
+                  : const SizedBox.shrink(),
+              !state.isLoggedIn
+                  ? ListTile(
+                      title: const Text("Log In"),
+                      textColor: Colors.blue,
+                      onTap: () {
+                        showDialog(
+                          context: context,
+                          builder: (context) => AlertDialog(
+                            title: const Text("Are you sure?"),
+                            content: const Text("Plx dont go"),
+                            actions: [
+                              TextButton(
+                                onPressed: () => Navigator.of(context).pop(),
+                                child: const Text(
+                                  "No",
+                                  style: TextStyle(color: Colors.red),
+                                ),
+                              ),
+                              TextButton(
+                                onPressed: () =>
+                                    context.go(LoginScreen.routeURL),
+                                child: const Text(
+                                  "Yes",
+                                  style: TextStyle(color: Colors.blue),
+                                ),
+                              ),
+                            ],
+                          ),
+                        );
+                      },
+                    )
+                  : const SizedBox.shrink(),
+              const AboutListTile(
+                applicationVersion: "1.0",
+                applicationLegalese: "Don't copy me.",
+              ),
+            ],
           ),
-          ListTile(
-            title: const Text("Log In"),
-            textColor: Colors.blue,
-            onTap: () {
-              showDialog(
-                context: context,
-                builder: (context) => AlertDialog(
-                  title: const Text("Are you sure?"),
-                  content: const Text("Plx dont go"),
-                  actions: [
-                    TextButton(
-                      onPressed: () => Navigator.of(context).pop(),
-                      child: const Text("No", style: TextStyle(color: Colors.red),),
-                    ),
-                    TextButton(
-                      onPressed: () => context.go(LoginScreen.routeURL),
-                      child: const Text("Yes", style: TextStyle(color: Colors.blue),),
-                    ),
-                  ],
-                ),
-              );
-            },
-          ),
-          const AboutListTile(
-            applicationVersion: "1.0",
-            applicationLegalese: "Don't copy me.",
-          ),
-        ],
-      ),
+        );
+      },
+      loading: () => const CircularProgressIndicator(),
+      error: (error, stack) => Text('Error: $error'),
     );
   }
 }

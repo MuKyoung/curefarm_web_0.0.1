@@ -1,6 +1,5 @@
 import 'package:curefarm_beta/Extensions/Gaps.dart';
 import 'package:curefarm_beta/Extensions/Sizes.dart';
-import 'package:curefarm_beta/AuthScene/Screens/SignUp&Login/email_screen.dart';
 import 'package:curefarm_beta/AuthScene/Screens/SignUp&Login/login_screen.dart';
 import 'package:curefarm_beta/AuthScene/Screens/SignUp&Login/username_screen.dart';
 import 'package:curefarm_beta/AuthScene/widgets/auth_button.dart';
@@ -24,7 +23,7 @@ class SignUpScreen extends StatelessWidget {
     Navigator.of(context).push(
       MaterialPageRoute(
         builder: (context) => const UsernameScreen(),
-      ), 
+      ),
     );
   }
 
@@ -57,12 +56,12 @@ class SignUpScreen extends StatelessWidget {
                 ),
                 Gaps.v40,
                 GestureDetector(
-                onTap: () => _onEmailTap(context),
-                child: const AuthButton(
-                  icon: FaIcon(FontAwesomeIcons.user),
-                  text: "이메일로 시작하기",
+                  onTap: () => _onEmailTap(context),
+                  child: const AuthButton(
+                    icon: FaIcon(FontAwesomeIcons.user),
+                    text: "이메일로 시작하기",
+                  ),
                 ),
-              ),
                 Gaps.v16,
                 const AuthButton(
                   icon: FaIcon(FontAwesomeIcons.google),

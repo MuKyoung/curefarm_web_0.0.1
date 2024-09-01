@@ -1,9 +1,5 @@
-import 'dart:math';
-import 'package:curefarm_beta/Extensions/Sizes.dart';
-import 'package:curefarm_beta/AuthScene/repos/authentication_repo.dart';
 import 'package:curefarm_beta/MainScene/view_models/main_view_model.dart';
-import 'package:curefarm_beta/ProfilePage/View/profile_view.dart';
-import 'package:curefarm_beta/ProfilePage/user_profile_view.dart';
+import 'package:curefarm_beta/ProfilePage/View/user_profile_view.dart';
 import 'package:curefarm_beta/SettingScene/Screens/settings_screen.dart';
 import 'package:curefarm_beta/widgets/nav_tab.dart';
 import 'package:flutter/material.dart';
@@ -35,8 +31,6 @@ class _MainNavigationScreenState extends ConsumerState<MainNavigationScreen> {
     "profile",
   ];
 
-  late int _selectedIndex = _tabs.indexOf(widget.tab);
-
   final screens = [
     const Center(
       child: Text(
@@ -63,10 +57,8 @@ class _MainNavigationScreenState extends ConsumerState<MainNavigationScreen> {
   ];
 
   void _onTap(int index) {
+    ref.read(mainViewModelProvider.notifier).updateSelectedIndex(index);
     context.go("/${_tabs[index]}");
-    setState(() {
-      _selectedIndex = index;
-    });
   }
 
   void _goToSettingsScreen() {
@@ -79,13 +71,13 @@ class _MainNavigationScreenState extends ConsumerState<MainNavigationScreen> {
 
   @override
   Widget build(BuildContext context) {
-    final loginState = ref.watch(mainViewModelProvider);
+    final viewModelState = ref.watch(mainViewModelProvider);
 
-    return loginState.when(
-      data: (isLoggedIn) {
+    return viewModelState.when(
+      data: (state) {
         return Scaffold(
           appBar: AppBar(
-            elevation: 10,
+            backgroundColor: Colors.white,
             actions: [
               IconButton(
                 onPressed: _goToSettingsScreen,
@@ -94,24 +86,14 @@ class _MainNavigationScreenState extends ConsumerState<MainNavigationScreen> {
             ],
           ),
           body: Stack(
-            children: [
-              Offstage(
-                offstage: _selectedIndex != 0,
-                child: screens.elementAt(_selectedIndex),
-              ),
-              Offstage(
-                offstage: _selectedIndex != 1,
-                child: screens.elementAt(_selectedIndex),
-              ),
-              Offstage(
-                offstage: _selectedIndex != 3,
-                child: screens.elementAt(_selectedIndex),
-              ),
-              Offstage(
-                offstage: _selectedIndex != 4,
-                child: screens.elementAt(_selectedIndex),
-              ),
-            ],
+            children: screens.asMap().entries.map((entry) {
+              int idx = entry.key;
+              Widget screen = entry.value;
+              return Offstage(
+                offstage: state.selectedIndex != idx,
+                child: screen,
+              );
+            }).toList(),
           ),
           bottomNavigationBar: BottomAppBar(
             elevation: 10,
@@ -121,28 +103,28 @@ class _MainNavigationScreenState extends ConsumerState<MainNavigationScreen> {
               children: [
                 NavTab(
                   text: "홈",
-                  isSelected: _selectedIndex == 0,
+                  isSelected: state.selectedIndex == 0,
                   icon: FontAwesomeIcons.house,
                   onTap: () => _onTap(0),
                 ),
                 NavTab(
                   text: "검색",
-                  isSelected: _selectedIndex == 1,
+                  isSelected: state.selectedIndex == 1,
                   icon: FontAwesomeIcons.magnifyingGlass,
                   onTap: () => _onTap(1),
                 ),
-                isLoggedIn
+                state.isLoggedIn
                     ? NavTab(
                         text: "채팅",
-                        isSelected: _selectedIndex == 3,
+                        isSelected: state.selectedIndex == 3,
                         icon: FontAwesomeIcons.message,
                         onTap: () => _onTap(3),
                       )
                     : const SizedBox.shrink(),
-                isLoggedIn
+                state.isLoggedIn
                     ? NavTab(
                         text: "프로필",
-                        isSelected: _selectedIndex == 4,
+                        isSelected: state.selectedIndex == 4,
                         icon: FontAwesomeIcons.user,
                         onTap: () => _onTap(4),
                       )

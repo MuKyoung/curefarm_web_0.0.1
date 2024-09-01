@@ -1,7 +1,6 @@
 import 'package:curefarm_beta/Extensions/Gaps.dart';
 import 'package:curefarm_beta/Extensions/Sizes.dart';
 import 'package:curefarm_beta/AuthScene/Screens/tutorial_screen.dart';
-import 'package:curefarm_beta/AuthScene/Screens/SignUp&Login/login_form.dart';
 import 'package:curefarm_beta/AuthScene/view_models/signup_view_model.dart';
 import 'package:curefarm_beta/AuthScene/widgets/form_button.dart';
 import 'package:flutter/material.dart';
