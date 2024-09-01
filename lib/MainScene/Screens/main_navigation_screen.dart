@@ -1,3 +1,4 @@
+import 'package:curefarm_beta/MainScene/Screens/home_screen.dart';
 import 'package:curefarm_beta/MainScene/view_models/main_view_model.dart';
 import 'package:curefarm_beta/ProfilePage/View/user_profile_view.dart';
 import 'package:curefarm_beta/SettingScene/Screens/settings_screen.dart';
@@ -33,10 +34,7 @@ class _MainNavigationScreenState extends ConsumerState<MainNavigationScreen> {
 
   final screens = [
     const Center(
-      child: Text(
-        'Home',
-        style: TextStyle(fontSize: 49),
-      ),
+      child: HomeScreen(),
     ),
     const Center(
       child: Text(
