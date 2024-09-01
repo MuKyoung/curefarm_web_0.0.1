@@ -55,31 +55,49 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
             children: [
               Padding(
                 padding: const EdgeInsets.all(16.0),
-                child: ClipRRect(
-                  borderRadius: BorderRadius.circular(100.0),
-                  child: CarouselSlider.builder(
-                    itemCount: images.length,
-                    itemBuilder: (context, index, realIdx) {
-                      return CachedNetworkImage(
-                        imageUrl: images[index],
-                        fit: BoxFit.cover,
-                        width: double.infinity,
-                        placeholder: (context, url) =>
-                            const Center(child: CircularProgressIndicator()),
-                        errorWidget: (context, url, error) =>
-                            const Icon(Icons.error),
-                      );
-                    },
-                    options: CarouselOptions(
-                      height: 200,
-                      enlargeCenterPage: true,
-                      autoPlay: true,
-                      aspectRatio: 16 / 9,
-                      enableInfiniteScroll: true,
-                      autoPlayInterval: const Duration(seconds: 3),
-                      viewportFraction: 0.3,
-                      pageSnapping: true,
-                    ),
+                child: CarouselSlider.builder(
+                  itemCount: images.length,
+                  itemBuilder: (context, index, realIdx) {
+                    return ClipRRect(
+                      borderRadius: BorderRadius.circular(20),
+                      child: Stack(
+                        fit: StackFit.expand, // 부모의 크기에 맞게 자식 위젯을 확장
+                        children: [
+                          Container(
+                            decoration: BoxDecoration(
+                              borderRadius: BorderRadius.circular(20),
+                              color: Colors.grey[200],
+                            ),
+                            child: const Center(
+                                child: CircularProgressIndicator()),
+                          ),
+                          CachedNetworkImage(
+                            imageUrl: images[index],
+                            fit: BoxFit.cover,
+                            placeholder: (context, url) => Container(
+                              decoration: BoxDecoration(
+                                borderRadius: BorderRadius.circular(20),
+                                color: Colors.transparent, // 배경을 투명하게 설정
+                              ),
+                            ),
+                            errorWidget: (context, url, error) =>
+                                const Icon(Icons.error),
+                          ),
+                        ],
+                      ),
+                    );
+                  },
+                  options: CarouselOptions(
+                    clipBehavior: Clip.hardEdge,
+                    height: 200,
+                    enlargeCenterPage: true,
+                    autoPlay: true,
+                    aspectRatio: 16 / 9,
+                    enableInfiniteScroll: true,
+                    autoPlayInterval: const Duration(seconds: 3),
+                    viewportFraction:
+                        MediaQuery.of(context).size.width > 1080 ? 0.3 : 0.8,
+                    pageSnapping: true,
                   ),
                 ),
               ),

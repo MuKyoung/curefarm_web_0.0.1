@@ -42,7 +42,7 @@ final routerProvider = Provider((ref) {
         builder: (context, state) => const TutorialScreen(),
       ),
       GoRoute(
-        path: "/:tab(home|discover|inbox|profile)",
+        path: "/:tab(home|discover|chat|profile|managerHome|managerChat)",
         name: MainNavigationScreen.routeName,
         builder: (context, state) {
           final tab = state.pathParameters["tab"]!;

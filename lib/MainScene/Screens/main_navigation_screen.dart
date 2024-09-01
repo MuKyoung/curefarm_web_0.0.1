@@ -28,8 +28,10 @@ class _MainNavigationScreenState extends ConsumerState<MainNavigationScreen> {
     "home",
     "discover",
     "xxxx",
-    "inbox",
+    "chat",
     "profile",
+    "managerHome",
+    "managerChat",
   ];
 
   final screens = [
@@ -51,6 +53,18 @@ class _MainNavigationScreenState extends ConsumerState<MainNavigationScreen> {
     ),
     const Center(
       child: UserProfileScreen(),
+    ),
+    const Center(
+      child: Text(
+        'ManagerHome',
+        style: TextStyle(fontSize: 49),
+      ),
+    ),
+    const Center(
+      child: Text(
+        'ManagerChat',
+        style: TextStyle(fontSize: 49),
+      ),
     ),
   ];
 
@@ -99,24 +113,44 @@ class _MainNavigationScreenState extends ConsumerState<MainNavigationScreen> {
             child: Row(
               mainAxisAlignment: MainAxisAlignment.spaceBetween,
               children: [
-                NavTab(
-                  text: "홈",
-                  isSelected: state.selectedIndex == 0,
-                  icon: FontAwesomeIcons.house,
-                  onTap: () => _onTap(0),
-                ),
-                NavTab(
-                  text: "검색",
-                  isSelected: state.selectedIndex == 1,
-                  icon: FontAwesomeIcons.magnifyingGlass,
-                  onTap: () => _onTap(1),
-                ),
-                state.isLoggedIn
+                !state.isManager
+                    ? NavTab(
+                        text: "홈",
+                        isSelected: state.selectedIndex == 0,
+                        icon: FontAwesomeIcons.house,
+                        onTap: () => _onTap(0),
+                      )
+                    : const SizedBox.shrink(),
+                !state.isManager
+                    ? NavTab(
+                        text: "검색",
+                        isSelected: state.selectedIndex == 1,
+                        icon: FontAwesomeIcons.magnifyingGlass,
+                        onTap: () => _onTap(1),
+                      )
+                    : const SizedBox.shrink(),
+                state.isLoggedIn && !state.isManager
                     ? NavTab(
                         text: "채팅",
                         isSelected: state.selectedIndex == 3,
                         icon: FontAwesomeIcons.message,
                         onTap: () => _onTap(3),
+                      )
+                    : const SizedBox.shrink(),
+                state.isManager
+                    ? NavTab(
+                        text: "매니저홈",
+                        isSelected: state.selectedIndex == 5,
+                        icon: FontAwesomeIcons.house,
+                        onTap: () => _onTap(5),
+                      )
+                    : const SizedBox.shrink(),
+                state.isManager
+                    ? NavTab(
+                        text: "매니저채팅",
+                        isSelected: state.selectedIndex == 6,
+                        icon: FontAwesomeIcons.message,
+                        onTap: () => _onTap(6),
                       )
                     : const SizedBox.shrink(),
                 state.isLoggedIn

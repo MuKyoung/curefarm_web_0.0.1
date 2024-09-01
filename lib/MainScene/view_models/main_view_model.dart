@@ -10,10 +10,12 @@ class MainViewModel extends StateNotifier<AsyncValue<MainViewState>> {
   MainViewModel(this._authRepo) : super(const AsyncValue.loading()) {
     _authRepo.authStateChanges().listen((User? user) {
       state = AsyncValue.data(MainViewState(
-        isLoggedIn: user != null,
-        selectedIndex: 0,
-      ));
+          isLoggedIn: user != null, selectedIndex: 0, isManager: false));
     });
+  }
+
+  void converToManagerMode(bool isManager) {
+    state = AsyncValue.data(state.value!.copyWith(isManager: isManager));
   }
 
   void updateSelectedIndex(int index) {
