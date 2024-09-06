@@ -2,7 +2,7 @@ name: Build and deploy flutter web app
 
 on:
   push:
-    branches: [ "master" ]
+    branches: [ "main" ]
 
 jobs:
   build:
@@ -12,7 +12,7 @@ jobs:
       - uses: actions/checkout@v3
       - uses: subosito/flutter-action@v2
         with:
-          channel: 'master'
+          channel: 'main'
       - run: flutter pub get
       - run: flutter config --enable-web
       - run: flutter build web --base-href "/${{ github.event.repository.name }}/"
