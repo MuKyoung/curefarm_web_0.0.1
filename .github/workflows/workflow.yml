@@ -18,9 +18,9 @@ jobs:
       - run: flutter pub get
       - run: flutter build web --release
         # 1. change path which exist lib/main.dart
-        working-directory: ./curefarm_web_0.0.1
+        working-directory: ./CUREFARM_BETA
       - run: |
-          cd curefarm_web_0.0.1/build/web
+          cd CUREFARM_BETA/build/web
           git init
           git config --global user.email hsib1212@naver.com
           git config --global user.name MuKyoung
