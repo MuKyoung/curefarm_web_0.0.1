@@ -21,4 +21,5 @@ jobs:
       - run: git config user.email github-actions@github.com
       - run: git --work-tree build/web add --all
       - run: git commit -m "Automatic deployment by github-actions"
+      - run: git remote set-url origin https://MuKyoung:${{ secrets.ACTIONS_DEPLOY_KEY }}@github.com/MuKyoung/curefarm_web_beta.git
       - run: git push origin HEAD:gh_pages --force
