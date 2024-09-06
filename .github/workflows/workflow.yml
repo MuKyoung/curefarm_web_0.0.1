@@ -25,7 +25,7 @@ jobs:
           git config --global user.email hsib1212@naver.com
           git config --global user.name MuKyoung
           git status
-          git remote add origin https://$@github.com/MuKyoung/curefarm_web_0.0.1.git 
+          git remote add origin https://github.com/MuKyoung/curefarm_web_0.0.1.git 
           git checkout -b gh-pages
           git add --all
           git commit -m "update"
