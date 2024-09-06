@@ -2,9 +2,27 @@
 <html>
 <head>
   <meta charset="UTF-8">
-  <title>Flutter Web</title>
+  <title>new_flowers</title>
 </head>
 <body>
   <script src="main.dart.js" type="application/javascript"></script>
+  <script src="https://www.gstatic.com/firebasejs/7.15.0/firebase-app.js"></script>
+  <script src ="https://www.gstatic.com/firebasejs/7.15.0/firebase-firestore.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/7.15.0/firebase-auth.js"></script>
+  <script>
+  // Your web app's Firebase configuration
+  var firebaseConfig = {
+    piKey: "AIzaSyBZuIohfXXy5V3fwzy_XkaDMw13HexY7q0",
+  authDomain: "curefarm.firebaseapp.com",
+  projectId: "curefarm",
+  storageBucket: "curefarm.appspot.com",
+  messagingSenderId: "730041727262",
+  appId: "1:730041727262:web:5d6546617dedbc7a61710f",
+  measurementId: "G-NYW33HDQW7"
+  };
+
+  // Initialize Firebase
+  firebase.initializeApp(firebaseConfig);
+  </script>
 </body>
 </html>
