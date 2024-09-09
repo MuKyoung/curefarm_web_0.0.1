@@ -17,8 +17,8 @@ class _UserProfileScreenState extends ConsumerState<UserProfileScreen> {
   @override
   Widget build(BuildContext context) {
     return ref.watch(usersProvider).when(
-          skipLoadingOnReload: false,
-          skipLoadingOnRefresh: false,
+          skipLoadingOnReload: true,
+          skipLoadingOnRefresh: true,
           error: (error, stackTrace) => Center(
             child: Text(error.toString()),
           ),
