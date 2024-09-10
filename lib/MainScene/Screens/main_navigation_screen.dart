@@ -1,5 +1,6 @@
 import 'package:curefarm_beta/MainScene/Screens/home_screen.dart';
 import 'package:curefarm_beta/MainScene/view_models/main_view_model.dart';
+import 'package:curefarm_beta/ManagerMainScene/Screens/manager_home_screen.dart';
 import 'package:curefarm_beta/ProfilePage/View/user_profile_view.dart';
 import 'package:curefarm_beta/SettingScene/Screens/settings_screen.dart';
 import 'package:curefarm_beta/widgets/nav_tab.dart';
@@ -55,10 +56,7 @@ class _MainNavigationScreenState extends ConsumerState<MainNavigationScreen> {
       child: UserProfileScreen(),
     ),
     const Center(
-      child: Text(
-        'ManagerHome',
-        style: TextStyle(fontSize: 49),
-      ),
+      child: ManagerHomeScreen(),
     ),
     const Center(
       child: Text(

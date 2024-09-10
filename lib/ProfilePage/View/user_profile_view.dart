@@ -1,5 +1,6 @@
 import 'package:curefarm_beta/Extensions/Gaps.dart';
 import 'package:curefarm_beta/Extensions/Sizes.dart';
+import 'package:curefarm_beta/users/models/user_profile_model.dart';
 import 'package:curefarm_beta/users/view_models/users_view_model.dart';
 import 'package:curefarm_beta/widgets/avatar.dart';
 import 'package:curefarm_beta/widgets/persistent_tab_bar.dart';
@@ -11,6 +12,21 @@ class UserProfileScreen extends ConsumerStatefulWidget {
   const UserProfileScreen({super.key});
   @override
   ConsumerState<UserProfileScreen> createState() => _UserProfileScreenState();
+}
+
+Future<UserProfileModel> downloadUserProfileModel(WidgetRef ref) async {
+  late UserProfileModel userProfileModel;
+  ref.watch(usersProvider).when(
+      skipLoadingOnReload: true,
+      skipLoadingOnRefresh: true,
+      error: (error, stackTrace) => Center(
+            child: Text(error.toString()),
+          ),
+      loading: () => const Center(
+            child: CircularProgressIndicator(),
+          ),
+      data: (data) => userProfileModel = data);
+  return userProfileModel;
 }
 
 class _UserProfileScreenState extends ConsumerState<UserProfileScreen> {
