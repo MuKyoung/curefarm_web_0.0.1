@@ -1,6 +1,7 @@
 import 'package:curefarm_beta/MainScene/Screens/home_screen.dart';
 import 'package:curefarm_beta/MainScene/view_models/main_view_model.dart';
 import 'package:curefarm_beta/ManagerMainScene/Screens/manager_home_screen.dart';
+import 'package:curefarm_beta/ManagerMainScene/Screens/upload_page.dart';
 import 'package:curefarm_beta/ProfilePage/View/user_profile_view.dart';
 import 'package:curefarm_beta/SettingScene/Screens/settings_screen.dart';
 import 'package:curefarm_beta/widgets/nav_tab.dart';
@@ -56,11 +57,11 @@ class _MainNavigationScreenState extends ConsumerState<MainNavigationScreen> {
       child: UserProfileScreen(),
     ),
     const Center(
-      child: ManagerHomeScreen(),
+      child: UploadPage(),
     ),
     const Center(
       child: Text(
-        'ManagerChat',
+        '매니저 채팅',
         style: TextStyle(fontSize: 49),
       ),
     ),
