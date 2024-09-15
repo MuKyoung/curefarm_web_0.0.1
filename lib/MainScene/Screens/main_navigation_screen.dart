@@ -1,6 +1,6 @@
-import 'package:curefarm_beta/MainScene/Screens/home_screen.dart';
+import 'package:curefarm_beta/MainScene/Screens/home_page.dart';
+import 'package:curefarm_beta/MainScene/Screens/search_page.dart';
 import 'package:curefarm_beta/MainScene/view_models/main_view_model.dart';
-import 'package:curefarm_beta/ManagerMainScene/Screens/manager_home_screen.dart';
 import 'package:curefarm_beta/ManagerMainScene/Screens/upload_page.dart';
 import 'package:curefarm_beta/ProfilePage/View/user_profile_view.dart';
 import 'package:curefarm_beta/SettingScene/Screens/settings_screen.dart';
@@ -41,10 +41,7 @@ class _MainNavigationScreenState extends ConsumerState<MainNavigationScreen> {
       child: HomeScreen(),
     ),
     const Center(
-      child: Text(
-        'Search',
-        style: TextStyle(fontSize: 49),
-      ),
+      child: SearchPage(),
     ),
     Container(),
     const Center(
