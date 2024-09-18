@@ -27,7 +27,7 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
       List<String> imageUrls = [];
       for (int i = 0; i < childCount; i++) {
         String imageUrl = await _storage
-            .refFromURL('gs://curefarm.appspot.com/banners/banner_$i.jpg')
+            .refFromURL('gs://curefarm.appspot.com/banners/banner_$i.JPG')
             .getDownloadURL();
         imageUrls.add(imageUrl);
       }
@@ -51,7 +51,7 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
         } else if (snapshot.hasData) {
           final images = snapshot.data!;
 
-          return Column(
+          return ListView(
             children: [
               Padding(
                 padding: const EdgeInsets.all(16.0),
@@ -89,22 +89,22 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
                   },
                   options: CarouselOptions(
                     clipBehavior: Clip.hardEdge,
-                    height: 200,
+                    height:
+                        MediaQuery.of(context).size.width > 1080 ? 360 : 180,
                     enlargeCenterPage: true,
                     autoPlay: true,
                     aspectRatio: 16 / 9,
                     enableInfiniteScroll: true,
                     autoPlayInterval: const Duration(seconds: 3),
                     viewportFraction:
-                        MediaQuery.of(context).size.width > 1080 ? 0.3 : 0.8,
+                        MediaQuery.of(context).size.width > 1080 ? .4 : .8,
                     pageSnapping: true,
                   ),
                 ),
               ),
-              const Padding(
-                padding: EdgeInsets.only(top: 16.0),
+              const Center(
                 child: Text(
-                  'This is a fixed text below the images',
+                  '새로운 기능 : 게시물 검색 및 조회 기능',
                   style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
                 ),
               ),

@@ -1,3 +1,5 @@
+import 'dart:async';
+
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:curefarm_beta/MainScene/Model/post_model.dart';
 import 'package:flutter/material.dart';
@@ -43,7 +45,21 @@ class PostDetailPage extends StatelessWidget {
                   child: ListView.builder(
                     itemCount: post['imageUrls'].length,
                     itemBuilder: (context, index) {
-                      return Image.network(post['imageUrls'][index]);
+                      return FutureBuilder<Image>(
+                        future: _loadNetworkImage(post['imageUrls'][index]),
+                        builder: (context, snapshot) {
+                          if (snapshot.connectionState ==
+                              ConnectionState.waiting) {
+                            return const Center(
+                                child: CircularProgressIndicator());
+                          }
+                          if (!snapshot.hasData || snapshot.data == null) {
+                            return const Text('이미지를 로드할 수 없습니다.');
+                          }
+                          final image = snapshot.data!;
+                          return image;
+                        },
+                      );
                     },
                   ),
                 ),
@@ -52,6 +68,31 @@ class PostDetailPage extends StatelessWidget {
           ),
         );
       },
+    );
+  }
+
+  Future<Image> _loadNetworkImage(String imageUrl) async {
+    final image = NetworkImage(imageUrl);
+    final completer = Completer<Size>();
+    image.resolve(const ImageConfiguration()).addListener(
+      ImageStreamListener((ImageInfo info, bool _) {
+        final myImage = info.image;
+        final size = Size(myImage.width.toDouble(), myImage.height.toDouble());
+        completer.complete(size);
+      }),
+    );
+    final size = await completer.future;
+
+    // 고정된 가로 크기를 300으로 설정하고 비율 유지
+    const fixedWidth = 600.0;
+    final aspectRatio = size.width / size.height;
+    final height = fixedWidth / aspectRatio;
+
+    return Image.network(
+      imageUrl,
+      width: fixedWidth,
+      height: height,
+      fit: BoxFit.contain, // 이미지 비율을 유지하면서 크기에 맞춤
     );
   }
 }
