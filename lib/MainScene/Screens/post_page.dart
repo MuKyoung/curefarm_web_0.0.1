@@ -3,17 +3,63 @@ import 'dart:async';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:curefarm_beta/MainScene/Model/post_model.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
 
-class PostDetailPage extends StatelessWidget {
+class PostDetailPage extends StatefulWidget {
   final String postId;
 
   const PostDetailPage({super.key, required this.postId});
 
   @override
+  _PostDetailPageState createState() => _PostDetailPageState();
+}
+
+class _PostDetailPageState extends State<PostDetailPage> {
+  bool isLiked = false;
+  int likeCount = 0;
+
+  @override
+  void initState() {
+    super.initState();
+    _fetchPostData();
+  }
+
+  Future<void> _fetchPostData() async {
+    final postDoc = await FirebaseFirestore.instance
+        .collection('posts')
+        .doc(widget.postId)
+        .get();
+    if (postDoc.exists) {
+      final postData = postDoc.data() as Map<String, dynamic>;
+      setState(() {
+        likeCount = postData['likeCount'] ?? 0;
+        // 사용자가 이전에 좋아요를 눌렀는지 확인 (여기서는 단순히 기본값 false)
+        isLiked = false; // 실제로는 유저 데이터와 비교해서 처리해야 함
+      });
+    }
+  }
+
+  Future<void> _toggleLike() async {
+    setState(() {
+      isLiked = !isLiked;
+      likeCount += isLiked ? 1 : -1;
+    });
+
+    await FirebaseFirestore.instance
+        .collection('posts')
+        .doc(widget.postId)
+        .update({
+      'likeCount': likeCount,
+    });
+  }
+
+  @override
   Widget build(BuildContext context) {
-    // Firestore에서 postId에 해당하는 게시물 정보를 가져옴
     return FutureBuilder<DocumentSnapshot>(
-      future: FirebaseFirestore.instance.collection('posts').doc(postId).get(),
+      future: FirebaseFirestore.instance
+          .collection('posts')
+          .doc(widget.postId)
+          .get(),
       builder: (context, snapshot) {
         if (snapshot.connectionState == ConnectionState.waiting) {
           return const Center(child: CircularProgressIndicator());
@@ -40,59 +86,36 @@ class PostDetailPage extends StatelessWidget {
                 const SizedBox(height: 8),
                 Text(post['description']),
                 const SizedBox(height: 16),
-                // 이미지 리스트 출력
                 Expanded(
                   child: ListView.builder(
                     itemCount: post['imageUrls'].length,
                     itemBuilder: (context, index) {
-                      return FutureBuilder<Image>(
-                        future: _loadNetworkImage(post['imageUrls'][index]),
-                        builder: (context, snapshot) {
-                          if (snapshot.connectionState ==
-                              ConnectionState.waiting) {
-                            return const Center(
-                                child: CircularProgressIndicator());
-                          }
-                          if (!snapshot.hasData || snapshot.data == null) {
-                            return const Text('이미지를 로드할 수 없습니다.');
-                          }
-                          final image = snapshot.data!;
-                          return image;
-                        },
+                      return Image.network(
+                        post['imageUrls'][index],
+                        fit: BoxFit.cover,
+                        width: MediaQuery.of(context).size.width, // 화면 너비 맞춤
                       );
                     },
                   ),
+                ),
+                const SizedBox(height: 16),
+                Row(
+                  children: [
+                    IconButton(
+                      icon: Icon(
+                        isLiked ? Icons.favorite : Icons.favorite_border,
+                        color: isLiked ? Colors.red : Colors.grey,
+                      ),
+                      onPressed: _toggleLike,
+                    ),
+                    Text('좋아요 $likeCount개'),
+                  ],
                 ),
               ],
             ),
           ),
         );
       },
-    );
-  }
-
-  Future<Image> _loadNetworkImage(String imageUrl) async {
-    final image = NetworkImage(imageUrl);
-    final completer = Completer<Size>();
-    image.resolve(const ImageConfiguration()).addListener(
-      ImageStreamListener((ImageInfo info, bool _) {
-        final myImage = info.image;
-        final size = Size(myImage.width.toDouble(), myImage.height.toDouble());
-        completer.complete(size);
-      }),
-    );
-    final size = await completer.future;
-
-    // 고정된 가로 크기를 300으로 설정하고 비율 유지
-    const fixedWidth = 600.0;
-    final aspectRatio = size.width / size.height;
-    final height = fixedWidth / aspectRatio;
-
-    return Image.network(
-      imageUrl,
-      width: fixedWidth,
-      height: height,
-      fit: BoxFit.contain, // 이미지 비율을 유지하면서 크기에 맞춤
     );
   }
 }

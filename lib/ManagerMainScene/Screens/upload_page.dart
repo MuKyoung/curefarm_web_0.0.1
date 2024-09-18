@@ -26,6 +26,9 @@ class _UploadPageState extends ConsumerState<UploadPage> {
   List<String>? _webImageUrls = []; // 웹 이미지 URL 저장
   final ImagePicker _picker = ImagePicker();
 
+  // 최대 업로드 가능한 이미지 개수
+  static const int maxImages = 5;
+
   // Firebase Auth 인스턴스
   final FirebaseAuth _auth = FirebaseAuth.instance;
 
@@ -36,29 +39,35 @@ class _UploadPageState extends ConsumerState<UploadPage> {
         allowMultiple: true,
         type: FileType.image,
       );
-      if (result != null && result.files.length <= 5) {
-        setState(() {
-          _selectedWebImages.addAll(result.files.map((file) => file.bytes!));
-          _webImageUrls = _selectedWebImages.map((fileBytes) {
-            final blob = html.Blob([fileBytes]);
-            return html.Url.createObjectUrlFromBlob(blob);
-          }).toList();
-        });
-      } else {
-        ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(content: Text('최대 5개의 이미지만 선택할 수 있습니다.')),
-        );
+      if (result != null) {
+        final newImagesCount = result.files.length;
+
+        if (_selectedWebImages.length + newImagesCount > maxImages) {
+          ScaffoldMessenger.of(context).showSnackBar(
+            const SnackBar(content: Text('최대 5개의 이미지만 선택할 수 있습니다.')),
+          );
+        } else {
+          setState(() {
+            _selectedWebImages.addAll(result.files.map((file) => file.bytes!));
+            _webImageUrls = _selectedWebImages.map((fileBytes) {
+              final blob = html.Blob([fileBytes]);
+              return html.Url.createObjectUrlFromBlob(blob);
+            }).toList();
+          });
+        }
       }
     } else {
       final pickedImages = await _picker.pickMultiImage(imageQuality: 85);
-      if (pickedImages.length <= 5) {
-        setState(() {
-          _selectedImages.addAll(pickedImages);
-        });
-      } else {
+      final newImagesCount = pickedImages.length;
+
+      if (_selectedImages.length + newImagesCount > maxImages) {
         ScaffoldMessenger.of(context).showSnackBar(
           const SnackBar(content: Text('최대 5개의 이미지만 선택할 수 있습니다.')),
         );
+      } else {
+        setState(() {
+          _selectedImages.addAll(pickedImages);
+        });
       }
     }
   }
@@ -157,7 +166,7 @@ class _UploadPageState extends ConsumerState<UploadPage> {
                   final uploader = user.displayName ?? "unknown"; // 업로더의 이메일
 
                   // 데이터 업로드 로직 호출 시 업로더 정보 포함
-                  ref.read(uploadViewModelProvider.notifier).uploadData(
+                  ref.read(uploadViewModelProvider.notifier).uploadPost(
                         title: _titleController.text,
                         description: _descriptionController.text,
                         tags: tags,
@@ -175,10 +184,10 @@ class _UploadPageState extends ConsumerState<UploadPage> {
                   ? const CircularProgressIndicator()
                   : const Text('업로드'),
             ),
-            if (uploadState.errorMessage.isNotEmpty)
+            if (uploadState.errorMessage != null)
               Padding(
                 padding: const EdgeInsets.only(top: 10),
-                child: Text(uploadState.errorMessage,
+                child: Text(uploadState.errorMessage!,
                     style: const TextStyle(color: Colors.red)),
               ),
           ],

@@ -12,82 +12,96 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:image_picker/image_picker.dart';
 
 class UploadViewModel extends StateNotifier<UploadState> {
-  UploadViewModel() : super(UploadState());
+  UploadViewModel() : super(UploadState.initial());
 
-  Future<void> uploadData({
+  Future<void> uploadPost({
     required String title,
     required String description,
-    required List<XFile> selectedImages, // 모바일용
-    required List<Uint8List> selectedWebImages, // 웹용
-    required String uploader,
+    required List<XFile> selectedImages,
+    required List<Uint8List> selectedWebImages,
     required List<String> tags,
+    required String uploader,
   }) async {
-    state = state.copyWith(isLoading: true);
-
     try {
-      List<String> imageUrls = []; // 업로드된 이미지들의 URL을 저장할 리스트
+      // 로딩 상태 설정
+      state = state.copyWith(isLoading: true);
 
-      // 모바일에서 이미지를 선택한 경우
-      for (var image in selectedImages) {
-        final String imageId = DateTime.now()
-            .millisecondsSinceEpoch
-            .toString(); // 현재 시간을 기준으로 고유한 이미지 ID 생성
-        final ref = FirebaseStorage.instance
-            .ref()
-            .child('uploads/$imageId'); // Firebase Storage에 경로 설정
-        final uploadTask = await ref.putFile(File(image.path)); // 이미지 업로드
+      // 이미지를 Firebase Storage에 업로드하고 URL 목록을 생성
+      List<String> imageUrls = [];
 
-        // 업로드 완료 후 URL 가져오기
-        final imageUrl = await uploadTask.ref.getDownloadURL();
-        imageUrls.add(imageUrl); // URL 리스트에 추가
-      }
-
-      // 웹에서 이미지를 선택한 경우
-      for (var image in selectedWebImages) {
-        final String imageId =
-            DateTime.now().millisecondsSinceEpoch.toString(); // 고유한 이미지 ID 생성
-        final ref = FirebaseStorage.instance.ref().child('uploads/$imageId');
-        final uploadTask = await ref.putData(image); // Uint8List로 이미지 업로드
-
-        // 업로드 완료 후 URL 가져오기
-        final imageUrl = await uploadTask.ref.getDownloadURL();
+      // 모바일 이미지 업로드
+      for (XFile image in selectedImages) {
+        String imageUrl = await _uploadImageToStorage(image.path);
         imageUrls.add(imageUrl);
       }
 
-      // 모든 이미지 업로드 후 Firestore에 데이터 저장
-      final post = {
+      // 웹 이미지 업로드
+      for (Uint8List webImage in selectedWebImages) {
+        String imageUrl = await _uploadWebImageToStorage(webImage);
+        imageUrls.add(imageUrl);
+      }
+
+      // Firestore에 게시물 저장
+      await FirebaseFirestore.instance.collection('posts').add({
         'title': title,
         'description': description,
-        'imageUrls': imageUrls, // 업로드한 이미지들의 URL 리스트
+        'imageUrls': imageUrls,
         'tags': tags,
         'uploader': uploader,
-        'createdAt': FieldValue.serverTimestamp(), // 생성 시간
-      };
+        'createdAt': FieldValue.serverTimestamp(),
+        'likeCount': 0, // 좋아요 초기값 설정
+      });
 
-      await FirebaseFirestore.instance.collection('posts').add(post);
-
+      // 성공 후 로딩 해제
       state = state.copyWith(isLoading: false);
     } catch (e) {
-      print('업로드 오류: $e'); // 콘솔에 오류 로그 출력
+      // 오류 발생 시 처리
       state =
-          state.copyWith(errorMessage: '업로드 중 오류가 발생했습니다.', isLoading: false);
+          state.copyWith(isLoading: false, errorMessage: '게시물 업로드에 실패했습니다.');
+      throw Exception('게시물 업로드에 실패했습니다.');
+    }
+  }
+
+  // 이미지 업로드 로직 (모바일)
+  Future<String> _uploadImageToStorage(String imagePath) async {
+    try {
+      final storageRef = FirebaseStorage.instance
+          .ref()
+          .child('uploads/${DateTime.now().millisecondsSinceEpoch}.jpg');
+      await storageRef.putFile(File(imagePath));
+      return await storageRef.getDownloadURL();
+    } catch (e) {
+      throw Exception('이미지 업로드에 실패했습니다.');
+    }
+  }
+
+  // 이미지 업로드 로직 (웹)
+  Future<String> _uploadWebImageToStorage(Uint8List webImage) async {
+    try {
+      final storageRef = FirebaseStorage.instance
+          .ref()
+          .child('uploads/${DateTime.now().millisecondsSinceEpoch}.jpg');
+      await storageRef.putData(webImage);
+      return await storageRef.getDownloadURL();
+    } catch (e) {
+      throw Exception('이미지 업로드에 실패했습니다.');
     }
   }
 }
 
 class UploadState {
   final bool isLoading;
-  final String errorMessage;
+  final String? errorMessage;
 
-  UploadState({
-    this.isLoading = false,
-    this.errorMessage = '',
-  });
+  UploadState({required this.isLoading, this.errorMessage});
 
-  UploadState copyWith({
-    bool? isLoading,
-    String? errorMessage,
-  }) {
+  // 초기 상태 설정
+  factory UploadState.initial() {
+    return UploadState(isLoading: false, errorMessage: null);
+  }
+
+  // 상태 업데이트를 위한 복사본 생성 메서드
+  UploadState copyWith({bool? isLoading, String? errorMessage}) {
     return UploadState(
       isLoading: isLoading ?? this.isLoading,
       errorMessage: errorMessage ?? this.errorMessage,
