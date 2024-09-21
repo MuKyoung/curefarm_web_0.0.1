@@ -17,6 +17,7 @@ class _SearchPageState extends ConsumerState<SearchPage> {
   @override
   Widget build(BuildContext context) {
     final searchState = ref.watch(searchViewModelProvider);
+    final searchViewModel = ref.read(searchViewModelProvider.notifier);
 
     return Scaffold(
       appBar: AppBar(
@@ -27,17 +28,13 @@ class _SearchPageState extends ConsumerState<SearchPage> {
         child: Column(
           children: [
             TextField(
-              controller: _searchController, // 검색어 입력 컨트롤러 연결
+              controller: _searchController,
               decoration: InputDecoration(
                 labelText: '검색어 입력',
                 suffixIcon: IconButton(
                   icon: const Icon(Icons.search),
                   onPressed: () {
-                    final searchViewModel =
-                        ref.read(searchViewModelProvider.notifier);
-
                     final searchTerm = _searchController.text.trim();
-
                     if (searchTerm.isNotEmpty) {
                       searchViewModel.searchPosts(searchTerm);
                     } else {
@@ -53,7 +50,7 @@ class _SearchPageState extends ConsumerState<SearchPage> {
               child: searchState.isLoading
                   ? const Center(child: CircularProgressIndicator())
                   : searchState.posts.isEmpty
-                      ? const Text('검색 결과가 없습니다')
+                      ? const Text('검색 결과가 없습니다.')
                       : Column(
                           children: [
                             Expanded(
@@ -68,6 +65,7 @@ class _SearchPageState extends ConsumerState<SearchPage> {
                                     title: Text(post['title']),
                                     subtitle: Text('좋아요 ${post['likeCount']}개'),
                                     onTap: () {
+                                      // 게시물 상세 페이지로 이동
                                       Navigator.push(
                                         context,
                                         MaterialPageRoute(
@@ -87,9 +85,8 @@ class _SearchPageState extends ConsumerState<SearchPage> {
                                   (pageIndex) {
                                 return TextButton(
                                   onPressed: () {
-                                    ref
-                                        .read(searchViewModelProvider.notifier)
-                                        .loadPostsByPage(pageIndex + 1);
+                                    searchViewModel.changePage(pageIndex + 1,
+                                        _searchController.text.trim());
                                   },
                                   child: Text('${pageIndex + 1}'),
                                 );

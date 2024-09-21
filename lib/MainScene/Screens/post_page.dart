@@ -4,6 +4,7 @@ import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:curefarm_beta/MainScene/Model/post_model.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:font_awesome_flutter/font_awesome_flutter.dart';
 
 class PostDetailPage extends StatefulWidget {
   final String postId;
@@ -73,8 +74,16 @@ class _PostDetailPageState extends State<PostDetailPage> {
 
         return Scaffold(
           appBar: AppBar(
-            title: Text(post['title']),
-          ),
+              title: Text(post['title']),
+              backgroundColor: Colors.white,
+              actions: [
+                IconButton(
+                  icon: const FaIcon(FontAwesomeIcons.solidHeart),
+                  color: isLiked ? Colors.red : Colors.grey,
+                  onPressed: _toggleLike,
+                ),
+                Text('좋아요 $likeCount개'),
+              ]),
           body: Padding(
             padding: const EdgeInsets.all(16.0),
             child: Column(
@@ -99,18 +108,6 @@ class _PostDetailPageState extends State<PostDetailPage> {
                   ),
                 ),
                 const SizedBox(height: 16),
-                Row(
-                  children: [
-                    IconButton(
-                      icon: Icon(
-                        isLiked ? Icons.favorite : Icons.favorite_border,
-                        color: isLiked ? Colors.red : Colors.grey,
-                      ),
-                      onPressed: _toggleLike,
-                    ),
-                    Text('좋아요 $likeCount개'),
-                  ],
-                ),
               ],
             ),
           ),

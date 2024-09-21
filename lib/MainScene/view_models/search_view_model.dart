@@ -5,59 +5,68 @@ class SearchViewModel extends StateNotifier<SearchState> {
   SearchViewModel() : super(SearchState.initial());
 
   final int postsPerPage = 10;
-  DocumentSnapshot? lastDocument;
 
-  // 좋아요 개수로 정렬하여 게시물 불러오기
-  Future<void> loadPostsByPage(int page) async {
-    state = state.copyWith(isLoading: true);
+  // 게시물 검색 함수 (페이지네이션 포함)
+  Future<void> searchPosts(String query,
+      {int page = 1, QueryDocumentSnapshot? lastVisible}) async {
+    try {
+      state = state.copyWith(isLoading: true, posts: [], currentPage: page);
 
-    QuerySnapshot snapshot;
-    final postsRef = FirebaseFirestore.instance.collection('posts');
+      final postsRef = FirebaseFirestore.instance.collection('posts');
 
-    if (lastDocument == null) {
-      snapshot = await postsRef
-          .orderBy('likeCount', descending: true)
-          .limit(postsPerPage)
-          .get();
-    } else {
-      snapshot = await postsRef
-          .orderBy('likeCount', descending: true)
-          .startAfterDocument(lastDocument!)
-          .limit(postsPerPage)
-          .get();
+      // 기본 쿼리
+      Query titleQuery = postsRef
+          .where('title', isGreaterThanOrEqualTo: query)
+          .where('title', isLessThanOrEqualTo: '$query\uf8ff')
+          .limit(postsPerPage);
+
+      Query tagsQuery =
+          postsRef.where('tags', arrayContains: query).limit(postsPerPage);
+
+      // 페이지네이션을 위한 커서 설정
+      if (lastVisible != null) {
+        titleQuery = titleQuery.startAfterDocument(lastVisible);
+        tagsQuery = tagsQuery.startAfterDocument(lastVisible);
+      }
+
+      // 두 쿼리 결과를 가져옴
+      final titleSnapshot = await titleQuery.get();
+      final tagsSnapshot = await tagsQuery.get();
+
+      // 두 결과를 합침
+      final allPosts = <QueryDocumentSnapshot<Object?>>[
+        ...titleSnapshot.docs,
+        ...tagsSnapshot.docs,
+      ];
+
+      allPosts.sort((a, b) {
+        int likeCountA = (a.data() as Map<String, dynamic>)['likeCount'] ?? 0;
+        int likeCountB = (b.data() as Map<String, dynamic>)['likeCount'] ?? 0;
+        return likeCountB.compareTo(likeCountA);
+      });
+      // 중복된 게시물 제거 (id 기준으로)
+      final uniquePosts = allPosts.toSet().toList();
+
+      // 상태 업데이트
+      state = state.copyWith(
+        posts: uniquePosts,
+        isLoading: false,
+        lastVisible: uniquePosts.isNotEmpty ? uniquePosts.last : null,
+        currentPage: page,
+      );
+    } catch (e) {
+      state = state.copyWith(isLoading: false);
+      print('Error during search: $e');
     }
-
-    if (snapshot.docs.isNotEmpty) {
-      lastDocument = snapshot.docs.last; // 마지막 문서 업데이트
-    }
-
-    int totalDocuments = (await postsRef.get()).size;
-    int totalPages = (totalDocuments / postsPerPage).ceil();
-
-    state = state.copyWith(
-      posts: [...state.posts, ...snapshot.docs],
-      isLoading: false,
-      lastVisible: snapshot.docs.isNotEmpty ? snapshot.docs.last : null,
-      totalPages: totalPages,
-    );
   }
 
-  // 검색 기능 구현
-  Future<void> searchPosts(String query) async {
-    state = state.copyWith(isLoading: true);
-
-    final postsRef = FirebaseFirestore.instance.collection('posts');
-    final snapshot = await postsRef
-        .where('tags', arrayContains: query)
-        .orderBy('likeCount', descending: true)
-        .limit(postsPerPage)
-        .get();
-
-    state = state.copyWith(
-      posts: snapshot.docs,
-      isLoading: false,
-      lastVisible: snapshot.docs.isNotEmpty ? snapshot.docs.last : null,
-    );
+  // 페이지네이션을 위한 페이지 변경
+  Future<void> changePage(int newPage, String query) async {
+    if (newPage > 0 && newPage <= state.totalPages) {
+      // 타입 캐스팅을 통해 lastVisible을 QueryDocumentSnapshot으로 변환
+      final lastVisible = state.lastVisible as QueryDocumentSnapshot<Object?>?;
+      await searchPosts(query, page: newPage, lastVisible: lastVisible);
+    }
   }
 }
 
@@ -65,12 +74,14 @@ class SearchState {
   final List<QueryDocumentSnapshot> posts;
   final bool isLoading;
   final DocumentSnapshot? lastVisible;
+  final int currentPage;
   final int totalPages;
 
   SearchState({
     required this.posts,
     required this.isLoading,
     this.lastVisible,
+    required this.currentPage,
     required this.totalPages,
   });
 
@@ -80,6 +91,7 @@ class SearchState {
       posts: [],
       isLoading: false,
       lastVisible: null,
+      currentPage: 1,
       totalPages: 1,
     );
   }
@@ -89,12 +101,14 @@ class SearchState {
     List<QueryDocumentSnapshot>? posts,
     bool? isLoading,
     DocumentSnapshot? lastVisible,
+    int? currentPage,
     int? totalPages,
   }) {
     return SearchState(
       posts: posts ?? this.posts,
       isLoading: isLoading ?? this.isLoading,
       lastVisible: lastVisible ?? this.lastVisible,
+      currentPage: currentPage ?? this.currentPage,
       totalPages: totalPages ?? this.totalPages,
     );
   }
