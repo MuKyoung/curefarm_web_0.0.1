@@ -14,27 +14,10 @@ class UserProfileScreen extends ConsumerStatefulWidget {
   ConsumerState<UserProfileScreen> createState() => _UserProfileScreenState();
 }
 
-Future<UserProfileModel> downloadUserProfileModel(WidgetRef ref) async {
-  late UserProfileModel userProfileModel;
-  ref.watch(usersProvider).when(
-      skipLoadingOnReload: true,
-      skipLoadingOnRefresh: true,
-      error: (error, stackTrace) => Center(
-            child: Text(error.toString()),
-          ),
-      loading: () => const Center(
-            child: CircularProgressIndicator(),
-          ),
-      data: (data) => userProfileModel = data);
-  return userProfileModel;
-}
-
 class _UserProfileScreenState extends ConsumerState<UserProfileScreen> {
   @override
   Widget build(BuildContext context) {
     return ref.watch(usersProvider).when(
-          skipLoadingOnReload: true,
-          skipLoadingOnRefresh: true,
           error: (error, stackTrace) => Center(
             child: Text(error.toString()),
           ),

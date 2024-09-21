@@ -21,10 +21,20 @@ class _UploadPageState extends ConsumerState<UploadPage> {
   final _titleController = TextEditingController();
   final _descriptionController = TextEditingController();
   final _tagsController = TextEditingController();
-  final Set<XFile> _selectedImages = {}; // 중복 방지 위해 Set 사용
-  final Set<Uint8List> _selectedWebImages = {}; // 웹 이미지도 Set 사용
-  List<String>? _webImageUrls = []; // 웹 이미지 URL 저장
+  final _priceController = TextEditingController(); // 가격 입력 필드 추가
+  DateTime? _selectedDate; // 예약 날짜
+  String? _selectedArea; // 예약 지역
+  String? _selectedReservationType; // 예약 유형
+  final List<String> _selectedServices = []; // 제공 서비스
+  final Set<XFile> _selectedImages = {}; // 모바일 이미지
+  final Set<Uint8List> _selectedWebImages = {}; // 웹 이미지
   final ImagePicker _picker = ImagePicker();
+  List<String> _webImageUrls = []; // 웹 이미지 URL 저장
+
+  // 지역 목록 및 예약 유형/서비스 목록
+  final List<String> _areas = ['서울', '경기도', '부산'];
+  final List<String> _reservationTypes = ['일일체험', '숙박형 체험'];
+  final List<String> _services = ['반려동물 가능', '와이파이', '픽업 서비스'];
 
   // 최대 업로드 가능한 이미지 개수
   static const int maxImages = 5;
@@ -77,11 +87,25 @@ class _UploadPageState extends ConsumerState<UploadPage> {
     setState(() {
       if (isWeb) {
         _selectedWebImages.remove(_selectedWebImages.elementAt(index));
-        _webImageUrls?.removeAt(index);
+        _webImageUrls.removeAt(index);
       } else {
         _selectedImages.remove(_selectedImages.elementAt(index));
       }
     });
+  }
+
+  Future<void> _selectDate(BuildContext context) async {
+    final DateTime? picked = await showDatePicker(
+      context: context,
+      initialDate: DateTime.now(),
+      firstDate: DateTime(2020),
+      lastDate: DateTime(2030),
+    );
+    if (picked != null && picked != _selectedDate) {
+      setState(() {
+        _selectedDate = picked;
+      });
+    }
   }
 
   @override
@@ -115,6 +139,74 @@ class _UploadPageState extends ConsumerState<UploadPage> {
               ),
             ),
             const SizedBox(height: 10),
+            TextField(
+              controller: _priceController,
+              decoration: const InputDecoration(labelText: '가격'),
+              keyboardType: TextInputType.number,
+            ),
+            const SizedBox(height: 10),
+            const Text('예약 날짜'),
+            TextButton(
+              onPressed: () => _selectDate(context),
+              child: Text(_selectedDate != null
+                  ? _selectedDate!.toLocal().toString().split(' ')[0]
+                  : '날짜 선택'),
+            ),
+            const SizedBox(height: 10),
+            const Text('예약 지역'),
+            DropdownButton<String>(
+              value: _selectedArea,
+              hint: const Text('지역 선택'),
+              onChanged: (newValue) {
+                setState(() {
+                  _selectedArea = newValue;
+                });
+              },
+              items: _areas.map((area) {
+                return DropdownMenuItem(
+                  value: area,
+                  child: Text(area),
+                );
+              }).toList(),
+            ),
+            const SizedBox(height: 10),
+            const Text('예약 유형'),
+            DropdownButton<String>(
+              value: _selectedReservationType,
+              hint: const Text('유형 선택'),
+              onChanged: (newValue) {
+                setState(() {
+                  _selectedReservationType = newValue;
+                });
+              },
+              items: _reservationTypes.map((type) {
+                return DropdownMenuItem(
+                  value: type,
+                  child: Text(type),
+                );
+              }).toList(),
+            ),
+            const SizedBox(height: 10),
+            const Text('제공 서비스'),
+            Wrap(
+              spacing: 8.0,
+              children: _services.map((service) {
+                return FilterChip(
+                  label: Text(service),
+                  selected: _selectedServices.contains(service),
+                  onSelected: (bool selected) {
+                    setState(() {
+                      if (selected) {
+                        _selectedServices.add(service);
+                      } else {
+                        _selectedServices.remove(service);
+                      }
+                    });
+                  },
+                );
+              }).toList(),
+            ),
+            const SizedBox(height: 10),
             const Text('이미지 선택 (최대 5개)'),
             const SizedBox(height: 10),
             Wrap(
@@ -122,12 +214,11 @@ class _UploadPageState extends ConsumerState<UploadPage> {
               runSpacing: 8.0,
               children: kIsWeb
                   ? [
-                      for (var i = 0; i < _webImageUrls!.length; i++)
+                      for (var i = 0; i < _webImageUrls.length; i++)
                         GestureDetector(
-                          onTap: () =>
-                              _removeImage(i, isWeb: true), // 클릭 시 선택 해제
+                          onTap: () => _removeImage(i, isWeb: true),
                           child: Image.network(
-                            _webImageUrls![i],
+                            _webImageUrls[i],
                             width: 100,
                             height: 100,
                             fit: BoxFit.cover,
@@ -140,7 +231,7 @@ class _UploadPageState extends ConsumerState<UploadPage> {
                   : [
                       for (var i = 0; i < _selectedImages.length; i++)
                         GestureDetector(
-                          onTap: () => _removeImage(i), // 클릭 시 선택 해제
+                          onTap: () => _removeImage(i),
                           child: Image.file(
                             File(_selectedImages.elementAt(i).path),
                             width: 100,
@@ -160,20 +251,32 @@ class _UploadPageState extends ConsumerState<UploadPage> {
               onPressed: () async {
                 final tags = _tagsController.text.split(',');
 
-                // 업로드하는 사용자 정보 가져오기
-                final User? user = _auth.currentUser;
+                final User? user = FirebaseAuth.instance.currentUser;
                 if (user != null) {
-                  final uploader = user.displayName ?? "unknown"; // 업로더의 이메일
+                  final uploader = user.displayName ?? "unknown";
 
-                  // 데이터 업로드 로직 호출 시 업로더 정보 포함
-                  ref.read(uploadViewModelProvider.notifier).uploadPost(
-                        title: _titleController.text,
-                        description: _descriptionController.text,
-                        tags: tags,
-                        selectedImages: _selectedImages.toList(),
-                        selectedWebImages: _selectedWebImages.toList(),
-                        uploader: uploader, // 추가된 업로더 정보
-                      );
+                  if (_selectedDate != null &&
+                      _selectedArea != null &&
+                      _selectedReservationType != null &&
+                      _priceController.text.isNotEmpty) {
+                    ref.read(uploadViewModelProvider.notifier).uploadPost(
+                          title: _titleController.text,
+                          description: _descriptionController.text,
+                          tags: tags,
+                          selectedImages: _selectedImages.toList(),
+                          selectedWebImages: _selectedWebImages.toList(),
+                          uploader: uploader,
+                          reservationDate: _selectedDate!,
+                          reservationArea: _selectedArea!,
+                          reservationType: _selectedReservationType!,
+                          services: _selectedServices,
+                          price: int.parse(_priceController.text),
+                        );
+                  } else {
+                    ScaffoldMessenger.of(context).showSnackBar(
+                      const SnackBar(content: Text('모든 필드를 입력해주세요.')),
+                    );
+                  }
                 } else {
                   ScaffoldMessenger.of(context).showSnackBar(
                     const SnackBar(content: Text('로그인이 필요합니다.')),

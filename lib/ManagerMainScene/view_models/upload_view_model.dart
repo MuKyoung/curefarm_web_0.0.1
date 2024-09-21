@@ -21,12 +21,17 @@ class UploadViewModel extends StateNotifier<UploadState> {
     required List<Uint8List> selectedWebImages,
     required List<String> tags,
     required String uploader,
+    required DateTime reservationDate, // 예약 날짜
+    required String reservationArea, // 예약 지역
+    required String reservationType, // 예약 유형
+    required List<String> services, // 제공 서비스
+    required int price, // 가격
   }) async {
     try {
       // 로딩 상태 설정
       state = state.copyWith(isLoading: true);
 
-      // 이미지를 Firebase Storage에 업로드하고 URL 목록을 생성
+      // 이미지 업로드 처리
       List<String> imageUrls = [];
 
       // 모바일 이미지 업로드
@@ -41,15 +46,23 @@ class UploadViewModel extends StateNotifier<UploadState> {
         imageUrls.add(imageUrl);
       }
 
+      // 태그 전처리
+      List<String> processedTags = tags.map((tag) => tag.trim()).toList();
+
       // Firestore에 게시물 저장
       await FirebaseFirestore.instance.collection('posts').add({
         'title': title,
         'description': description,
         'imageUrls': imageUrls,
-        'tags': tags,
+        'tags': processedTags,
         'uploader': uploader,
         'createdAt': FieldValue.serverTimestamp(),
-        'likeCount': 0, // 좋아요 초기값 설정
+        'reservationDate': reservationDate,
+        'reservationArea': reservationArea,
+        'reservationType': reservationType,
+        'services': services,
+        'price': price,
+        'likeCount': 0, // 좋아요 초기값
       });
 
       // 성공 후 로딩 해제
@@ -95,12 +108,10 @@ class UploadState {
 
   UploadState({required this.isLoading, this.errorMessage});
 
-  // 초기 상태 설정
   factory UploadState.initial() {
     return UploadState(isLoading: false, errorMessage: null);
   }
 
-  // 상태 업데이트를 위한 복사본 생성 메서드
   UploadState copyWith({bool? isLoading, String? errorMessage}) {
     return UploadState(
       isLoading: isLoading ?? this.isLoading,

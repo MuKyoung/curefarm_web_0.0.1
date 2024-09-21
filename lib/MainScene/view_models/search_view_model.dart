@@ -6,52 +6,109 @@ class SearchViewModel extends StateNotifier<SearchState> {
 
   final int postsPerPage = 10;
 
-  // 게시물 검색 함수 (페이지네이션 포함)
-  Future<void> searchPosts(String query,
-      {int page = 1, QueryDocumentSnapshot? lastVisible}) async {
+  // 게시물 검색 함수 (필터 적용 및 페이지네이션 포함)
+  Future<void> searchPosts(
+    String query, {
+    int page = 1,
+    QueryDocumentSnapshot? lastVisible,
+    DateTime? reservationDate,
+    String? reservationArea,
+    String? reservationType,
+    List<String>? services,
+    int? minPrice,
+    int? maxPrice,
+  }) async {
     try {
       state = state.copyWith(isLoading: true, posts: [], currentPage: page);
 
       final postsRef = FirebaseFirestore.instance.collection('posts');
 
-      // 기본 쿼리
+      // 제목으로 검색 쿼리
       Query titleQuery = postsRef
           .where('title', isGreaterThanOrEqualTo: query)
           .where('title', isLessThanOrEqualTo: '$query\uf8ff')
           .limit(postsPerPage);
 
+      // 태그로 검색 쿼리
       Query tagsQuery =
           postsRef.where('tags', arrayContains: query).limit(postsPerPage);
 
-      // 페이지네이션을 위한 커서 설정
+      // 페이지네이션 적용 (lastVisible 사용)
       if (lastVisible != null) {
         titleQuery = titleQuery.startAfterDocument(lastVisible);
         tagsQuery = tagsQuery.startAfterDocument(lastVisible);
       }
 
-      // 두 쿼리 결과를 가져옴
+      // Firestore에서 게시물 가져오기 (제목과 태그로 각각)
       final titleSnapshot = await titleQuery.get();
       final tagsSnapshot = await tagsQuery.get();
 
-      // 두 결과를 합침
-      final allPosts = <QueryDocumentSnapshot<Object?>>[
-        ...titleSnapshot.docs,
-        ...tagsSnapshot.docs,
-      ];
+      // 중복 게시물을 피하기 위해 ID 기준으로 병합
+      final uniquePosts = <String, QueryDocumentSnapshot>{};
 
-      allPosts.sort((a, b) {
+      // 제목 검색 결과 추가
+      for (var doc in titleSnapshot.docs) {
+        uniquePosts[doc.id] = doc;
+      }
+
+      // 태그 검색 결과 추가 (중복 시 덮어씌워지지 않음)
+      for (var doc in tagsSnapshot.docs) {
+        uniquePosts.putIfAbsent(doc.id, () => doc);
+      }
+
+      // 병합된 게시물들을 리스트로 변환
+      List<QueryDocumentSnapshot> filteredPosts = uniquePosts.values.toList();
+
+      // 가져온 게시물들에 대해 추가 필터링 작업을 로컬에서 수행
+      filteredPosts = filteredPosts.where((doc) {
+        final postData = doc.data() as Map<String, dynamic>;
+        bool matches = true;
+
+        // 예약 날짜 필터링
+        if (reservationDate != null) {
+          matches = matches && (postData['reservationDate'] == reservationDate);
+        }
+
+        // 예약 지역 필터링
+        if (reservationArea != null) {
+          matches = matches && (postData['reservationArea'] == reservationArea);
+        }
+
+        // 예약 유형 필터링
+        if (reservationType != null) {
+          matches = matches && (postData['reservationType'] == reservationType);
+        }
+
+        // 서비스 필터링 (배열에 포함 여부 체크)
+        if (services != null && services.isNotEmpty) {
+          matches = matches &&
+              services.every((service) =>
+                  (postData['services'] as List<dynamic>).contains(service));
+        }
+
+        // 가격 필터링
+        if (minPrice != null) {
+          matches = matches && (postData['price'] >= minPrice);
+        }
+        if (maxPrice != null) {
+          matches = matches && (postData['price'] <= maxPrice);
+        }
+
+        return matches;
+      }).toList();
+
+      // 좋아요 순으로 정렬
+      filteredPosts.sort((a, b) {
         int likeCountA = (a.data() as Map<String, dynamic>)['likeCount'] ?? 0;
         int likeCountB = (b.data() as Map<String, dynamic>)['likeCount'] ?? 0;
         return likeCountB.compareTo(likeCountA);
       });
-      // 중복된 게시물 제거 (id 기준으로)
-      final uniquePosts = allPosts.toSet().toList();
 
       // 상태 업데이트
       state = state.copyWith(
-        posts: uniquePosts,
+        posts: filteredPosts,
         isLoading: false,
-        lastVisible: uniquePosts.isNotEmpty ? uniquePosts.last : null,
+        lastVisible: filteredPosts.isNotEmpty ? filteredPosts.last : null,
         currentPage: page,
       );
     } catch (e) {
@@ -63,7 +120,6 @@ class SearchViewModel extends StateNotifier<SearchState> {
   // 페이지네이션을 위한 페이지 변경
   Future<void> changePage(int newPage, String query) async {
     if (newPage > 0 && newPage <= state.totalPages) {
-      // 타입 캐스팅을 통해 lastVisible을 QueryDocumentSnapshot으로 변환
       final lastVisible = state.lastVisible as QueryDocumentSnapshot<Object?>?;
       await searchPosts(query, page: newPage, lastVisible: lastVisible);
     }

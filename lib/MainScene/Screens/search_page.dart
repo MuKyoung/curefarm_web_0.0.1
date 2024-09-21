@@ -13,6 +13,29 @@ class SearchPage extends ConsumerStatefulWidget {
 
 class _SearchPageState extends ConsumerState<SearchPage> {
   final _searchController = TextEditingController();
+  DateTime? _selectedDate;
+  String? _selectedArea;
+  String? _selectedReservationType;
+  final List<String> _selectedServices = [];
+  final List<String> _areas = ['서울', '경기도', '부산'];
+  final List<String> _reservationTypes = ['일일체험', '숙박형 체험'];
+  final List<String> _services = ['반려동물 가능', '와이파이', '픽업 서비스'];
+  final _minPriceController = TextEditingController();
+  final _maxPriceController = TextEditingController();
+
+  Future<void> _selectDate(BuildContext context) async {
+    final DateTime? picked = await showDatePicker(
+      context: context,
+      initialDate: DateTime.now(),
+      firstDate: DateTime(2020),
+      lastDate: DateTime(2030),
+    );
+    if (picked != null && picked != _selectedDate) {
+      setState(() {
+        _selectedDate = picked;
+      });
+    }
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -36,7 +59,22 @@ class _SearchPageState extends ConsumerState<SearchPage> {
                   onPressed: () {
                     final searchTerm = _searchController.text.trim();
                     if (searchTerm.isNotEmpty) {
-                      searchViewModel.searchPosts(searchTerm);
+                      final minPrice = _minPriceController.text.isNotEmpty
+                          ? int.parse(_minPriceController.text)
+                          : null;
+                      final maxPrice = _maxPriceController.text.isNotEmpty
+                          ? int.parse(_maxPriceController.text)
+                          : null;
+
+                      searchViewModel.searchPosts(
+                        searchTerm,
+                        reservationDate: _selectedDate,
+                        reservationArea: _selectedArea,
+                        reservationType: _selectedReservationType,
+                        services: _selectedServices,
+                        minPrice: minPrice,
+                        maxPrice: maxPrice,
+                      );
                     } else {
                       ScaffoldMessenger.of(context).showSnackBar(
                         const SnackBar(content: Text('검색어를 입력하세요.')),
@@ -45,6 +83,70 @@ class _SearchPageState extends ConsumerState<SearchPage> {
                   },
                 ),
               ),
+            ),
+            const SizedBox(height: 10),
+            TextButton(
+              onPressed: () => _selectDate(context),
+              child: Text(_selectedDate != null
+                  ? _selectedDate!.toLocal().toString().split(' ')[0]
+                  : '예약 날짜 선택'),
+            ),
+            DropdownButton<String>(
+              value: _selectedArea,
+              hint: const Text('예약 지역 선택'),
+              onChanged: (newValue) {
+                setState(() {
+                  _selectedArea = newValue;
+                });
+              },
+              items: _areas.map((area) {
+                return DropdownMenuItem(
+                  value: area,
+                  child: Text(area),
+                );
+              }).toList(),
+            ),
+            DropdownButton<String>(
+              value: _selectedReservationType,
+              hint: const Text('예약 유형 선택'),
+              onChanged: (newValue) {
+                setState(() {
+                  _selectedReservationType = newValue;
+                });
+              },
+              items: _reservationTypes.map((type) {
+                return DropdownMenuItem(
+                  value: type,
+                  child: Text(type),
+                );
+              }).toList(),
+            ),
+            Wrap(
+              children: _services.map((service) {
+                return CheckboxListTile(
+                  title: Text(service),
+                  value: _selectedServices.contains(service),
+                  onChanged: (bool? isChecked) {
+                    setState(() {
+                      if (isChecked == true) {
+                        _selectedServices.add(service);
+                      } else {
+                        _selectedServices.remove(service);
+                      }
+                    });
+                  },
+                );
+              }).toList(),
+            ),
+            TextField(
+              controller: _minPriceController,
+              keyboardType: TextInputType.number,
+              decoration: const InputDecoration(labelText: '최소 가격'),
+            ),
+            TextField(
+              controller: _maxPriceController,
+              keyboardType: TextInputType.number,
+              decoration: const InputDecoration(labelText: '최대 가격'),
             ),
             Expanded(
               child: searchState.isLoading
