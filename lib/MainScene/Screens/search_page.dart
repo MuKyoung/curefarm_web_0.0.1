@@ -317,7 +317,6 @@ class _SearchPageState extends ConsumerState<SearchPage> {
       BuildContext context, StateSetter modalSetState) async {
     final DateTime? picked = await showDatePicker(
       context: context,
-      locale: const Locale('ko'),
       initialDate: DateTime.now(),
       firstDate: DateTime(2020),
       lastDate: DateTime(2030),
@@ -335,7 +334,6 @@ class _SearchPageState extends ConsumerState<SearchPage> {
       BuildContext context, StateSetter modalSetState) async {
     final DateTime? picked = await showDatePicker(
       context: context,
-      locale: const Locale('ko'),
       initialDate: DateTime.now(),
       firstDate: DateTime(2020),
       lastDate: DateTime(2030),

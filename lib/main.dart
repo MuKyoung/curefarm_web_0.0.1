@@ -1,12 +1,11 @@
 import 'package:curefarm_beta/Extensions/Sizes.dart';
 import 'package:curefarm_beta/Extensions/router.dart';
-import 'package:curefarm_beta/AuthScene/Screens/SignUp&Login/email_screen.dart';
-import 'package:curefarm_beta/AuthScene/Screens/SignUp&Login/sign_up_screen.dart';
 import 'package:curefarm_beta/firebase_options.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:firebase_core/firebase_core.dart';
 import 'package:flutter/services.dart';
+import 'package:flutter_localizations/flutter_localizations.dart';
 
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
@@ -28,7 +27,14 @@ class CureFarm extends ConsumerWidget {
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     return MaterialApp.router(
-      locale: const Locale('ko'),
+      localizationsDelegates: const [
+        GlobalMaterialLocalizations.delegate,
+        GlobalWidgetsLocalizations.delegate,
+        GlobalCupertinoLocalizations.delegate,
+      ],
+      supportedLocales: const [
+        Locale('ko', 'KR'),
+      ],
       routerConfig: ref.watch(routerProvider),
       title: '큐어팜에 오신걸 환영합니다!',
       theme: ThemeData(
