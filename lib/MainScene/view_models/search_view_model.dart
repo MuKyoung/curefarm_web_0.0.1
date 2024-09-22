@@ -1,5 +1,6 @@
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:http/http.dart';
 
 class SearchViewModel extends StateNotifier<SearchState> {
   SearchViewModel() : super(SearchState.initial());
@@ -11,7 +12,8 @@ class SearchViewModel extends StateNotifier<SearchState> {
     String query, {
     int page = 1,
     QueryDocumentSnapshot? lastVisible,
-    DateTime? reservationDate,
+    DateTime? reservationStartDate, // 시작일
+    DateTime? reservationEndDate, // 종료일
     String? reservationArea,
     String? reservationType,
     List<String>? services,
@@ -33,45 +35,41 @@ class SearchViewModel extends StateNotifier<SearchState> {
       Query tagsQuery =
           postsRef.where('tags', arrayContains: query).limit(postsPerPage);
 
-      // 페이지네이션 적용 (lastVisible 사용)
+      // 페이지네이션 적용
       if (lastVisible != null) {
         titleQuery = titleQuery.startAfterDocument(lastVisible);
         tagsQuery = tagsQuery.startAfterDocument(lastVisible);
       }
 
-      // Firestore에서 게시물 가져오기 (제목과 태그로 각각)
+      // Firestore에서 게시물 가져오기
       final titleSnapshot = await titleQuery.get();
       final tagsSnapshot = await tagsQuery.get();
 
-      // 중복 게시물을 피하기 위해 ID 기준으로 병합
+      // 중복 게시물 병합
       final uniquePosts = <String, QueryDocumentSnapshot>{};
 
-      // 제목 검색 결과 추가
       for (var doc in titleSnapshot.docs) {
         uniquePosts[doc.id] = doc;
       }
-
-      // 태그 검색 결과 추가 (중복 시 덮어씌워지지 않음)
       for (var doc in tagsSnapshot.docs) {
         uniquePosts.putIfAbsent(doc.id, () => doc);
       }
 
-      // 병합된 게시물들을 리스트로 변환
       List<QueryDocumentSnapshot> filteredPosts = uniquePosts.values.toList();
 
-      // 가져온 게시물들에 대해 추가 필터링 작업을 로컬에서 수행
+      // 추가 필터링: 예약 기간 겹치는지 확인
       filteredPosts = filteredPosts.where((doc) {
         final postData = doc.data() as Map<String, dynamic>;
         bool matches = true;
 
-        // 예약 날짜 필터링
-        if (reservationDate != null) {
-          matches = matches && (postData['reservationDate'] == reservationDate);
-        }
-
         // 예약 지역 필터링
         if (reservationArea != null) {
-          matches = matches && (postData['reservationArea'] == reservationArea);
+          matches = matches &&
+              ((postData['reservationProvince'] + postData['reservationCity'] ==
+                      reservationArea) ||
+                  (postData['reservationProvince'] +
+                          postData['reservationCity'])
+                      .contains(reservationArea));
         }
 
         // 예약 유형 필터링
@@ -79,7 +77,7 @@ class SearchViewModel extends StateNotifier<SearchState> {
           matches = matches && (postData['reservationType'] == reservationType);
         }
 
-        // 서비스 필터링 (배열에 포함 여부 체크)
+        // 서비스 필터링
         if (services != null && services.isNotEmpty) {
           matches = matches &&
               services.every((service) =>
@@ -92,6 +90,17 @@ class SearchViewModel extends StateNotifier<SearchState> {
         }
         if (maxPrice != null) {
           matches = matches && (postData['price'] <= maxPrice);
+        }
+
+        // 예약 기간 필터링
+        if (reservationStartDate != null && reservationEndDate != null) {
+          final postStartDate = (postData['startDate'] as Timestamp).toDate();
+          final postEndDate = (postData['endDate'] as Timestamp).toDate();
+
+          // 사용자가 설정한 기간과 게시물의 기간이 겹치는지 확인
+          matches = matches &&
+              (postEndDate.isAfter(reservationStartDate) &&
+                  postStartDate.isBefore(reservationEndDate));
         }
 
         return matches;

@@ -21,11 +21,13 @@ class UploadViewModel extends StateNotifier<UploadState> {
     required List<Uint8List> selectedWebImages,
     required List<String> tags,
     required String uploader,
-    required DateTime reservationDate, // 예약 날짜
-    required String reservationArea, // 예약 지역
-    required String reservationType, // 예약 유형
-    required List<String> services, // 제공 서비스
-    required int price, // 가격
+    required DateTime startDate, // 시작일
+    required DateTime endDate, // 종료일
+    required String reservationProvince, // 도/특별시/광역시
+    required String reservationCity, // 시/군/구
+    required String reservationType,
+    required List<String> services,
+    required int price,
   }) async {
     try {
       // 로딩 상태 설정
@@ -57,14 +59,15 @@ class UploadViewModel extends StateNotifier<UploadState> {
         'tags': processedTags,
         'uploader': uploader,
         'createdAt': FieldValue.serverTimestamp(),
-        'reservationDate': reservationDate,
-        'reservationArea': reservationArea,
+        'startDate': startDate, // 시작일 추가
+        'endDate': endDate, // 종료일 추가
+        'reservationProvince': reservationProvince, // 도/특별시/광역시 추가
+        'reservationCity': reservationCity, // 시/군/구 추가
         'reservationType': reservationType,
         'services': services,
         'price': price,
-        'likeCount': 0, // 좋아요 초기값
+        'likeCount': 0,
       });
-
       // 성공 후 로딩 해제
       state = state.copyWith(isLoading: false);
     } catch (e) {

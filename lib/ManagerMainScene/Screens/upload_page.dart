@@ -22,8 +22,10 @@ class _UploadPageState extends ConsumerState<UploadPage> {
   final _descriptionController = TextEditingController();
   final _tagsController = TextEditingController();
   final _priceController = TextEditingController(); // 가격 입력 필드 추가
-  DateTime? _selectedDate; // 예약 날짜
-  String? _selectedArea; // 예약 지역
+  DateTime? _startDate; // 시작일
+  DateTime? _endDate; // 종료일
+  String? _selectedProvince; // 선택된 도/특별시/광역시
+  String? _selectedCity; // 선택된 시/군/구
   String? _selectedReservationType; // 예약 유형
   final List<String> _selectedServices = []; // 제공 서비스
   final Set<XFile> _selectedImages = {}; // 모바일 이미지
@@ -31,8 +33,290 @@ class _UploadPageState extends ConsumerState<UploadPage> {
   final ImagePicker _picker = ImagePicker();
   List<String> _webImageUrls = []; // 웹 이미지 URL 저장
 
-  // 지역 목록 및 예약 유형/서비스 목록
-  final List<String> _areas = ['서울', '경기도', '부산'];
+  // 도/특별시/광역시 목록
+  final List<String> _provinces = [
+    '서울특별시',
+    '부산광역시',
+    '대구광역시',
+    '인천광역시',
+    '광주광역시',
+    '대전광역시',
+    '울산광역시',
+    '세종특별자치시',
+    '경기도',
+    '강원특별자치도',
+    '충청북도',
+    '충청남도',
+    '전북특별자치도',
+    '전라남도',
+    '경상북도',
+    '경상남도',
+    '제주특별자치도',
+  ];
+
+  // 각 도에 속한 시/군/구 목록
+  final Map<String, List<String>> _cities = {
+    '서울특별시': [
+      '종로구',
+      '중구',
+      '용산구',
+      '성동구',
+      '광진구',
+      '동대문구',
+      '중랑구',
+      '성북구',
+      '강북구',
+      '도봉구',
+      '노원구',
+      '은평구',
+      '서대문구',
+      '마포구',
+      '양천구',
+      '강서구',
+      '구로구',
+      '금천구',
+      '영등포구',
+      '동작구',
+      '관악구',
+      '서초구',
+      '강남구',
+      '송파구',
+      '강동구'
+    ],
+    '부산광역시': [
+      '중구',
+      '서구',
+      '동구',
+      '영도구',
+      '부산진구',
+      '동래구',
+      '남구',
+      '북구',
+      '해운대구',
+      '사하구',
+      '금정구',
+      '강서구',
+      '연제구',
+      '수영구',
+      '사상구',
+      '기장군'
+    ],
+    '대구광역시': [
+      '중구',
+      '동구',
+      '서구',
+      '남구',
+      '북구',
+      '수성구',
+      '달서구',
+      '달성군',
+    ],
+    '인천광역시': [
+      '중구',
+      '동구',
+      '미추홀구',
+      '연수구',
+      '남동구',
+      '부평구',
+      '계양구',
+      '서구',
+      '강화군',
+      '옹진군',
+    ],
+    '광주광역시': [
+      '동구',
+      '서구',
+      '남구',
+      '북구',
+      '광산구',
+    ],
+    '대전광역시': [
+      '동구',
+      '중구',
+      '서구',
+      '유성구',
+      '대덕구',
+    ],
+    '울산광역시': [
+      '중구',
+      '남구',
+      '동구',
+      '북구',
+      '울주군',
+    ],
+    '경기도': [
+      '수원시',
+      '성남시',
+      '의정부시',
+      '안양시',
+      '부천시',
+      '광명시',
+      '평택시',
+      '동두천시',
+      '안산시',
+      '고양시',
+      '과천시',
+      '구리시',
+      '남양주시',
+      '오산시',
+      '시흥시',
+      '군포시',
+      '의왕시',
+      '하남시',
+      '용인시',
+      '파주시',
+      '이천시',
+      '안성시',
+      '김포시',
+      '화성시',
+      '광주시',
+      '양주시',
+      '포천시',
+      '여주시',
+      '연천군',
+      '가평군',
+      '양평군',
+    ],
+    '강원특별자치도': [
+      '춘천시',
+      '원주시',
+      '강릉시',
+      '동해시',
+      '태백시',
+      '속초시',
+      '삼척시',
+      '홍천군',
+      '횡성군',
+      '영월군',
+      '평창군',
+      '정선군',
+      '철원군',
+      '화천군',
+      '양구군',
+      '인제군',
+      '고성군',
+      '양양군',
+    ],
+    '충청북도': [
+      '청주시',
+      '충주시',
+      '제천시',
+      '보은군',
+      '옥천군',
+      '영동군',
+      '증평군',
+      '진천군',
+      '괴산군',
+      '음성군',
+      '단양군',
+    ],
+    '충청남도': [
+      '천안시',
+      '공주시',
+      '당진시',
+      '보령시',
+      '아산시',
+      '서산시',
+      '논산시',
+      '계룡시',
+      '금산군',
+      '부여군',
+      '서천군',
+      '청양군',
+      '홍성군',
+      '예산군',
+      '태안군',
+    ],
+    '전북특별자치도': [
+      '전주시',
+      '군산시',
+      '익산시',
+      '정읍시',
+      '남원시',
+      '김제시',
+      '완주군',
+      '진안군',
+      '무주군',
+      '장수군',
+      '임실군',
+      '순창군',
+      '고창군',
+      '부안군',
+    ],
+    '전라남도': [
+      '목포시',
+      '여수시',
+      '순천시',
+      '나주시',
+      '광양시',
+      '담양군',
+      '곡성군',
+      '구례군',
+      '고흥군',
+      '보성군',
+      '화순군',
+      '장흥군',
+      '강진군',
+      '해남군',
+      '영암군',
+      '무안군',
+      '함평군',
+      '영광군',
+      '장성군',
+      '완도군',
+      '진도군',
+      '신안군',
+    ],
+    '경상북도': [
+      '포항시',
+      '경주시',
+      '김천시',
+      '안동시',
+      '구미시',
+      '영주시',
+      '영천시',
+      '상주시',
+      '문경시',
+      '경산시',
+      '군위군',
+      '의성군',
+      '청송군',
+      '영양군',
+      '영덕군',
+      '청도군',
+      '고령군',
+      '성주군',
+      '칠곡군',
+      '예천군',
+      '봉화군',
+      '울진군',
+      '울릉군',
+    ],
+    '경상남도': [
+      '창원시',
+      '진주시',
+      '통영시',
+      '사천시',
+      '김해시',
+      '밀양시',
+      '거제시',
+      '양산시',
+      '의령군',
+      '함안군',
+      '창녕군',
+      '고성군',
+      '남해군',
+      '하동군',
+      '산청군',
+      '함양군',
+      '거창군',
+      '합천군,'
+    ],
+    '제주특별자치도': [
+      '제주시',
+      '서귀포시',
+    ],
+  };
   final List<String> _reservationTypes = ['일일체험', '숙박형 체험'];
   final List<String> _services = ['반려동물 가능', '와이파이', '픽업 서비스'];
 
@@ -94,16 +378,19 @@ class _UploadPageState extends ConsumerState<UploadPage> {
     });
   }
 
-  Future<void> _selectDate(BuildContext context) async {
-    final DateTime? picked = await showDatePicker(
+  Future<void> _selectDateRange(BuildContext context) async {
+    final DateTimeRange? picked = await showDateRangePicker(
       context: context,
-      initialDate: DateTime.now(),
       firstDate: DateTime(2020),
       lastDate: DateTime(2030),
+      initialDateRange: _startDate != null && _endDate != null
+          ? DateTimeRange(start: _startDate!, end: _endDate!)
+          : null,
     );
-    if (picked != null && picked != _selectedDate) {
+    if (picked != null) {
       setState(() {
-        _selectedDate = picked;
+        _startDate = picked.start;
+        _endDate = picked.end;
       });
     }
   }
@@ -145,29 +432,49 @@ class _UploadPageState extends ConsumerState<UploadPage> {
               keyboardType: TextInputType.number,
             ),
             const SizedBox(height: 10),
-            const Text('예약 날짜'),
+            const Text('예약 기간'),
             TextButton(
-              onPressed: () => _selectDate(context),
-              child: Text(_selectedDate != null
-                  ? _selectedDate!.toLocal().toString().split(' ')[0]
-                  : '날짜 선택'),
+              onPressed: () => _selectDateRange(context),
+              child: Text(_startDate != null && _endDate != null
+                  ? '${_startDate!.toLocal().toString().split(' ')[0]} ~ ${_endDate!.toLocal().toString().split(' ')[0]}'
+                  : '기간 선택'),
             ),
             const SizedBox(height: 10),
             const Text('예약 지역'),
             DropdownButton<String>(
-              value: _selectedArea,
-              hint: const Text('지역 선택'),
+              value: _selectedProvince,
+              hint: const Text('도/특별시/광역시 선택'),
               onChanged: (newValue) {
                 setState(() {
-                  _selectedArea = newValue;
+                  _selectedProvince = newValue;
+                  _selectedCity = null; // 도를 변경하면 시/군/구는 초기화
                 });
               },
-              items: _areas.map((area) {
+              items: _provinces.map((province) {
                 return DropdownMenuItem(
-                  value: area,
-                  child: Text(area),
+                  value: province,
+                  child: Text(province),
                 );
               }).toList(),
+            ),
+            const SizedBox(height: 10),
+            DropdownButton<String>(
+              value: _selectedCity,
+              hint: const Text('시/군/구 선택'),
+              onChanged: (newValue) {
+                setState(() {
+                  _selectedCity = newValue;
+                });
+              },
+              items: (_selectedProvince != null &&
+                      _cities.containsKey(_selectedProvince))
+                  ? _cities[_selectedProvince]!.map((city) {
+                      return DropdownMenuItem(
+                        value: city,
+                        child: Text(city),
+                      );
+                    }).toList()
+                  : [],
             ),
             const SizedBox(height: 10),
             const Text('예약 유형'),
@@ -255,8 +562,10 @@ class _UploadPageState extends ConsumerState<UploadPage> {
                 if (user != null) {
                   final uploader = user.displayName ?? "unknown";
 
-                  if (_selectedDate != null &&
-                      _selectedArea != null &&
+                  if (_startDate != null &&
+                      _endDate != null &&
+                      _selectedProvince != null &&
+                      _selectedCity != null &&
                       _selectedReservationType != null &&
                       _priceController.text.isNotEmpty) {
                     ref.read(uploadViewModelProvider.notifier).uploadPost(
@@ -266,8 +575,10 @@ class _UploadPageState extends ConsumerState<UploadPage> {
                           selectedImages: _selectedImages.toList(),
                           selectedWebImages: _selectedWebImages.toList(),
                           uploader: uploader,
-                          reservationDate: _selectedDate!,
-                          reservationArea: _selectedArea!,
+                          startDate: _startDate!, // 시작일
+                          endDate: _endDate!, // 종료일
+                          reservationProvince: _selectedProvince!,
+                          reservationCity: _selectedCity!,
                           reservationType: _selectedReservationType!,
                           services: _selectedServices,
                           price: int.parse(_priceController.text),
