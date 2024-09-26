@@ -2,6 +2,7 @@ import 'dart:async';
 
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:curefarm_beta/MainScene/Model/post_model.dart';
+import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:font_awesome_flutter/font_awesome_flutter.dart';
@@ -46,6 +47,23 @@ class _PostDetailPageState extends State<PostDetailPage> {
       likeCount += isLiked ? 1 : -1;
     });
 
+    final user = FirebaseAuth.instance.currentUser;
+    final userLikesRef = FirebaseFirestore.instance
+        .collection('users')
+        .doc(user!.uid)
+        .collection('likes');
+
+    if (isLiked) {
+      // 이미 좋아요가 눌린 상태 -> 좋아요 취소
+      await userLikesRef.doc(widget.postId).delete();
+    } else {
+      // 좋아요 표시
+      await userLikesRef
+          .doc(widget.postId)
+          .set({'likedAt': FieldValue.serverTimestamp()});
+    }
+
+    // 게시물 좋아요 개수 변경
     await FirebaseFirestore.instance
         .collection('posts')
         .doc(widget.postId)

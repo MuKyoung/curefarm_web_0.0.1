@@ -1,9 +1,11 @@
+import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:curefarm_beta/Extensions/Gaps.dart';
 import 'package:curefarm_beta/Extensions/Sizes.dart';
 import 'package:curefarm_beta/users/models/user_profile_model.dart';
 import 'package:curefarm_beta/users/view_models/users_view_model.dart';
 import 'package:curefarm_beta/widgets/avatar.dart';
 import 'package:curefarm_beta/widgets/persistent_tab_bar.dart';
+import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:font_awesome_flutter/font_awesome_flutter.dart';
@@ -15,6 +17,29 @@ class UserProfileScreen extends ConsumerStatefulWidget {
 }
 
 class _UserProfileScreenState extends ConsumerState<UserProfileScreen> {
+  final user = FirebaseAuth.instance.currentUser;
+
+  Future<List<DocumentSnapshot>> getLikedPosts() async {
+    // 좋아요 누른 게시물 ID 가져오기
+    QuerySnapshot likedPostsSnapshot = await FirebaseFirestore.instance
+        .collection('users')
+        .doc(user!.uid)
+        .collection('likes')
+        .get();
+
+    // 각 게시물의 데이터를 가져오기
+    List<DocumentSnapshot> likedPosts = [];
+    for (var doc in likedPostsSnapshot.docs) {
+      var post = await FirebaseFirestore.instance
+          .collection('posts')
+          .doc(doc.id)
+          .get();
+      likedPosts.add(post);
+    }
+
+    return likedPosts;
+  }
+
   @override
   Widget build(BuildContext context) {
     return ref.watch(usersProvider).when(
@@ -219,7 +244,7 @@ class _UserProfileScreenState extends ConsumerState<UserProfileScreen> {
 
                   return Padding(
                     padding: padding,
-                    child: const TabBarView(
+                    child: TabBarView(
                       children: [
                         // GridView.builder(
                         //   itemCount: 20,
@@ -245,11 +270,49 @@ class _UserProfileScreenState extends ConsumerState<UserProfileScreen> {
                         //     ],
                         //   ),
                         // ),
-                        Center(
-                          child: Text('Page One'),
+                        FutureBuilder<List<DocumentSnapshot>>(
+                          future: getLikedPosts(),
+                          builder: (context, snapshot) {
+                            if (!snapshot.hasData) {
+                              return const Center(
+                                  child: CircularProgressIndicator());
+                            }
+                            List<DocumentSnapshot> posts = snapshot.data!;
+
+                            return ListView.builder(
+                              itemCount: posts.length,
+                              itemBuilder: (context, index) {
+                                var postData =
+                                    posts[index].data() as Map<String, dynamic>;
+                                return ListTile(
+                                  title: Text(postData['title']),
+                                  subtitle: Text(postData['description']),
+                                );
+                              },
+                            );
+                          },
                         ),
-                        Center(
-                          child: Text('Page two'),
+                        FutureBuilder<List<DocumentSnapshot>>(
+                          future: getLikedPosts(),
+                          builder: (context, snapshot) {
+                            if (!snapshot.hasData) {
+                              return const Center(
+                                  child: CircularProgressIndicator());
+                            }
+                            List<DocumentSnapshot> posts = snapshot.data!;
+
+                            return ListView.builder(
+                              itemCount: posts.length,
+                              itemBuilder: (context, index) {
+                                var postData =
+                                    posts[index].data() as Map<String, dynamic>;
+                                return ListTile(
+                                  title: Text(postData['title']),
+                                  subtitle: Text(postData['description']),
+                                );
+                              },
+                            );
+                          },
                         ),
                       ],
                     ),
