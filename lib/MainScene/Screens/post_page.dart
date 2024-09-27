@@ -39,6 +39,17 @@ class _PostDetailPageState extends State<PostDetailPage> {
         isLiked = false; // 실제로는 유저 데이터와 비교해서 처리해야 함
       });
     }
+    final user = FirebaseAuth.instance.currentUser;
+    final userLikesRef = await FirebaseFirestore.instance
+        .collection('users')
+        .doc(user!.uid)
+        .collection('likes')
+        .doc(widget.postId)
+        .get();
+
+    if (userLikesRef.exists) {
+      isLiked = true;
+    }
   }
 
   Future<void> _toggleLike() async {
@@ -53,7 +64,7 @@ class _PostDetailPageState extends State<PostDetailPage> {
         .doc(user!.uid)
         .collection('likes');
 
-    if (isLiked) {
+    if (!isLiked) {
       // 이미 좋아요가 눌린 상태 -> 좋아요 취소
       await userLikesRef.doc(widget.postId).delete();
     } else {
